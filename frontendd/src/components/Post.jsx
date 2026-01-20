@@ -5,6 +5,7 @@ import './Post.css'
 function Post({ post, onPostUpdate }) {
   const [liked, setLiked] = useState(false)
   const [comment, setComment] = useState('')
+  const currentUserId = sessionStorage.getItem('userId')
 
   const handleLike = async () => {
     try {
@@ -39,6 +40,20 @@ function Post({ post, onPostUpdate }) {
     }
   }
 
+  const handleCommentLike = async (commentId) => {
+    try {
+      const token = sessionStorage.getItem('token')
+      await axios.put(
+        `/api/posts/${post._id}/comment/${commentId}/like`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      onPostUpdate()
+    } catch (err) {
+      console.error('Error liking comment:', err)
+    }
+  }
+
   return (
     <div className="post">
       <div className="post-header">
@@ -58,12 +73,20 @@ function Post({ post, onPostUpdate }) {
         <strong>{post.author?.username}</strong> {post.caption}
       </div>
       <div className="post-comments">
-        {post.comments?.map((com, idx) => (
-          <div key={idx} className="comment">
-            <strong>{com.author?.username}</strong> {com.text}
-          </div>
-        ))}
-      </div>
+         {post.comments?.map((com) => (
+           <div key={com._id} className="comment">
+             <div className="comment-text">
+               <strong>{com.author?.username}</strong> {com.text}
+             </div>
+             <button
+               onClick={() => handleCommentLike(com._id)}
+               className={`comment-like-btn ${com.likes?.some(id => String(id) === String(currentUserId)) ? 'liked' : ''}`}
+             >
+               ♡ {com.likes?.length || 0}
+             </button>
+           </div>
+         ))}
+       </div>
       <form onSubmit={handleComment} className="comment-form">
         <input
           type="text"

@@ -1,6 +1,7 @@
 const express = require('express');
 const Message = require('../models/Message');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -31,6 +32,17 @@ router.post('/send/:recipientId', protect, async (req, res) => {
     });
 
     await message.save();
+    
+    // Create notification for message
+    const notification = new Notification({
+      recipient: recipientId,
+      sender: req.userId,
+      type: 'message',
+      message: text
+    });
+    
+    await notification.save();
+    
     await message.populate('sender', 'username profilePicture');
     await message.populate('recipient', 'username profilePicture');
 
@@ -55,6 +67,16 @@ router.get('/conversation/:userId', protect, async (req, res) => {
       .populate('sender', 'username profilePicture')
       .populate('recipient', 'username profilePicture');
 
+    // Mark all received messages as read
+    await Message.updateMany(
+      {
+        sender: otherUserId,
+        recipient: req.userId,
+        read: false
+      },
+      { read: true }
+    );
+
     res.json(messages);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -75,13 +97,19 @@ router.get('/', protect, async (req, res) => {
     const conversationMap = new Map();
     messages.forEach(msg => {
       const otherUser = msg.sender._id.toString() === req.userId ? msg.recipient : msg.sender;
+      const isUnread = msg.recipient._id.toString() === req.userId && !msg.read;
+      
       if (!conversationMap.has(otherUser._id.toString())) {
         conversationMap.set(otherUser._id.toString(), {
           user: otherUser,
           lastMessage: msg.text,
           lastMessageTime: msg.createdAt,
-          unreadCount: msg.recipient._id.toString() === req.userId && !msg.read ? 1 : 0
+          unreadCount: isUnread ? 1 : 0
         });
+      } else if (isUnread) {
+        // Increment unread count for existing conversations
+        const conversation = conversationMap.get(otherUser._id.toString());
+        conversation.unreadCount += 1;
       }
     });
 
@@ -156,6 +184,28 @@ router.get('/unread/count', protect, async (req, res) => {
     });
 
     res.json({ unreadCount: count });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Like/Unlike message
+router.put('/:messageId/like', protect, async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) return res.status(404).json({ message: 'Message not found' });
+
+    if (message.likes.includes(req.userId)) {
+      message.likes = message.likes.filter(id => id.toString() !== req.userId);
+    } else {
+      message.likes.push(req.userId);
+    }
+
+    await message.save();
+    await message.populate('sender', 'username profilePicture');
+    await message.populate('recipient', 'username profilePicture');
+
+    res.json(message);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

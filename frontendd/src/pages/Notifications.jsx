@@ -82,17 +82,26 @@ function Notifications() {
                 }
                 if (notification.type === 'follow') {
                   navigate(`/profile/${notification.sender._id}`)
+                } else if (notification.type === 'message') {
+                  navigate(`/messages/${notification.sender._id}`)
                 }
               }}
             >
               <img src={notification.sender.profilePicture || 'https://via.placeholder.com/40'} alt={notification.sender.username} />
               <div className="notification-content">
                 <p>
-                  <strong>{notification.sender.username}</strong>{' '}
-                  {notification.type === 'follow' && 'followed you'}
-                  {notification.type === 'like' && 'liked your post'}
-                  {notification.type === 'comment' && 'commented on your post'}
+                   <strong>{notification.sender.username}</strong>{' '}
+                   {notification.type === 'follow' && 'followed you'}
+                   {notification.type === 'like' && (notification.message?.includes('comment') ? 'liked your comment' : 'liked your post')}
+                   {notification.type === 'comment' && 'commented on your post'}
+                   {notification.type === 'message' && 'sent you a message'}
                 </p>
+                {notification.type === 'message' && (
+                  <p className="notification-message">{notification.message}</p>
+                )}
+                {notification.type === 'comment' && (
+                  <p className="notification-message">{notification.message}</p>
+                )}
                 <span className="notification-time">
                   {new Date(notification.createdAt).toLocaleDateString()}
                 </span>

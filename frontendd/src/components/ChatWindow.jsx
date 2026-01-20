@@ -10,6 +10,7 @@ function ChatWindow({ user, onBack }) {
 
   useEffect(() => {
     fetchMessages()
+    markNotificationsAsRead()
     // Refresh messages every 2 seconds for real-time feel
     const interval = setInterval(fetchMessages, 2000)
     return () => clearInterval(interval)
@@ -36,6 +37,27 @@ function ChatWindow({ user, onBack }) {
     }
   }
 
+  const markNotificationsAsRead = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      // Fetch all notifications
+      const response = await axios.get('/api/notifications', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      // Find and mark message notifications from this user as read
+      const messageNotifications = response.data.filter(
+        n => n.type === 'message' && n.sender._id === user._id && !n.read
+      )
+      for (const notification of messageNotifications) {
+        await axios.put(`/api/notifications/${notification._id}/read`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      }
+    } catch (err) {
+      console.error('Error marking notifications as read:', err)
+    }
+  }
+
   const handleSendMessage = async (e) => {
     e.preventDefault()
     if (!input.trim()) return
@@ -57,6 +79,21 @@ function ChatWindow({ user, onBack }) {
 
   const currentUserId = sessionStorage.getItem('userId')
 
+  const handleMessageLike = async (messageId) => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const response = await axios.put(
+        `/api/messages/${messageId}/like`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      // Update message in state
+      setMessages(messages.map(msg => msg._id === messageId ? response.data : msg))
+    } catch (err) {
+      console.error('Error liking message:', err)
+    }
+  }
+
   return (
     <div className="chat-window">
       <div className="chat-header">
@@ -75,7 +112,15 @@ function ChatWindow({ user, onBack }) {
               key={msg._id}
               className={`message ${msg.sender._id === currentUserId ? 'sent' : 'received'}`}
             >
-              <p>{msg.text}</p>
+              <div className="message-content">
+                <p>{msg.text}</p>
+                <button
+                  onClick={() => handleMessageLike(msg._id)}
+                  className={`message-like-btn ${msg.likes?.some(id => String(id) === String(currentUserId)) ? 'liked' : ''}`}
+                >
+                  ♡ {msg.likes?.length || 0}
+                </button>
+              </div>
               <span className="timestamp">
                 {new Date(msg.createdAt).toLocaleTimeString()}
               </span>

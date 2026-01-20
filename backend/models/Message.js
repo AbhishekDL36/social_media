@@ -19,6 +19,10 @@ const messageSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  likes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   createdAt: {
     type: Date,
     default: Date.now

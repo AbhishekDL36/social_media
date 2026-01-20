@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import './Messages.css'
 import ChatWindow from '../components/ChatWindow'
 import MessageRequests from '../components/MessageRequests'
@@ -11,16 +11,15 @@ function Messages() {
   const [view, setView] = useState('chats') // 'chats' or 'requests'
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const { userId } = useParams()
 
   useEffect(() => {
-    const userId = searchParams.get('user')
     if (userId) {
       // Fetch user data and select them
       fetchAndSelectUser(userId)
     }
     fetchConversations()
-  }, [view, searchParams])
+  }, [view, userId])
 
   const fetchAndSelectUser = async (userId) => {
     try {

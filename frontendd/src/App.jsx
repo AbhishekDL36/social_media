@@ -40,6 +40,7 @@ function App() {
         <Route path="/post/:postId" element={user ? <PostDetail /> : <Login setUser={setUser} />} />
         <Route path="/followers/:userId/:type" element={user ? <FollowersList /> : <Login setUser={setUser} />} />
         <Route path="/messages" element={user ? <Messages /> : <Login setUser={setUser} />} />
+        <Route path="/messages/:userId" element={user ? <Messages /> : <Login setUser={setUser} />} />
       </Routes>
     </Router>
   )

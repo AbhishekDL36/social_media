@@ -7,11 +7,16 @@ function Navbar() {
   const navigate = useNavigate()
   const userId = sessionStorage.getItem('userId')
   const [unreadCount, setUnreadCount] = useState(0)
+  const [unreadMessages, setUnreadMessages] = useState(0)
 
   useEffect(() => {
     fetchUnreadCount()
-    // Refresh unread count every 10 seconds
-    const interval = setInterval(fetchUnreadCount, 10000)
+    fetchUnreadMessages()
+    // Refresh unread count every 5 seconds
+    const interval = setInterval(() => {
+      fetchUnreadCount()
+      fetchUnreadMessages()
+    }, 5000)
     return () => clearInterval(interval)
   }, [])
 
@@ -24,6 +29,24 @@ function Navbar() {
       setUnreadCount(response.data.unreadCount)
     } catch (err) {
       console.error('Error fetching unread count:', err)
+    }
+  }
+
+  const fetchUnreadMessages = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      // Get unread messages
+      const msgResponse = await axios.get('/api/messages/unread/count', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      // Get unread message notifications
+      const notifResponse = await axios.get('/api/notifications', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const unreadMessageNotifs = notifResponse.data.filter(n => n.type === 'message' && !n.read).length
+      setUnreadMessages(msgResponse.data.unreadCount + unreadMessageNotifs)
+    } catch (err) {
+      console.error('Error fetching unread messages:', err)
     }
   }
 
@@ -41,7 +64,10 @@ function Navbar() {
           <button onClick={() => navigate('/')} className="nav-link">Feed</button>
           <button onClick={() => navigate('/search')} className="nav-link">Search</button>
           <button onClick={() => navigate('/follow-requests')} className="nav-link">Requests</button>
-          <button onClick={() => navigate('/messages')} className="nav-link">Messages</button>
+          <button onClick={() => navigate('/messages')} className="nav-link messages-link">
+            Messages
+            {unreadMessages > 0 && <span className="badge">{unreadMessages}</span>}
+          </button>
           <button onClick={() => {
             navigate('/notifications')
             setUnreadCount(0)
