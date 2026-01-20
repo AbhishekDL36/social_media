@@ -45,6 +45,15 @@
 
 .stats div {
   text-align: center;
+  transition: color 0.2s;
+}
+
+.stats .stat-clickable {
+  cursor: pointer;
+}
+
+.stats .stat-clickable:hover {
+  color: #0095f6;
 }
 
 .follow-btn,
@@ -102,12 +111,37 @@
   border-top: 1px solid #dbdbdb;
 }
 
-.profile-posts-section h2 {
-  text-align: center;
-  font-size: 16px;
-  font-weight: 600;
+.posts-filter-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
   margin-bottom: 30px;
+  border-bottom: 1px solid #dbdbdb;
+  padding-bottom: 15px;
+}
+
+.filter-tab {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 0;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -17px;
+}
+
+.filter-tab:hover {
   color: #262626;
+}
+
+.filter-tab.active {
+  color: #262626;
+  border-bottom-color: #262626;
 }
 
 .posts-grid {

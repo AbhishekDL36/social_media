@@ -1,0 +1,119 @@
+.followers-list-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.followers-list-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #dbdbdb;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #0095f6;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  color: #0a66c2;
+}
+
+.followers-list-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.error-message {
+  color: #ed4956;
+  text-align: center;
+  padding: 20px;
+  background-color: #ffe0e0;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.empty-message {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+.followers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.follower-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #efefef;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  gap: 15px;
+}
+
+.follower-item:last-child {
+  border-bottom: none;
+}
+
+.follower-item:hover {
+  background-color: #f8f8f8;
+}
+
+.follower-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #e0e0e0;
+}
+
+.follower-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.follower-info h4 {
+  margin: 0 0 5px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+  word-break: break-word;
+}
+
+.follower-info .bio {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+  word-break: break-word;
+}
+
+.view-btn {
+  background: none;
+  border: none;
+  color: #0095f6;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.view-btn:hover {
+  color: #0a66c2;
+}

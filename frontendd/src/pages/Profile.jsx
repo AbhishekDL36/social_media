@@ -1,19 +1,39 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import PostThumbnail from '../components/PostThumbnail'
 import './Profile.css'
 
 function Profile() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [posts, setPosts] = useState([])
   const [isFollowing, setIsFollowing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [requestSent, setRequestSent] = useState(false)
+  const [activeFilter, setActiveFilter] = useState('all') // all, images, reels
   const currentUserId = sessionStorage.getItem('userId')
   const isOwnProfile = currentUserId === id
+
+  const canViewFollowersFollowing = () => {
+    // Own profile: always can view
+    if (isOwnProfile) return true
+    // Public account: always can view
+    if (!user?.isPrivate) return true
+    // Private account: only if following
+    return isFollowing
+  }
+
+  const getFilteredPosts = () => {
+    if (activeFilter === 'images') {
+      return posts.filter(post => post.mediaType === 'image')
+    } else if (activeFilter === 'reels') {
+      return posts.filter(post => post.mediaType === 'video')
+    }
+    return posts
+  }
 
   useEffect(() => {
     fetchUserProfile()
@@ -99,8 +119,18 @@ function Profile() {
           <p>{user.bio}</p>
           <div className="stats">
             <div><strong>{posts.length}</strong> Posts</div>
-            <div><strong>{user.followers?.length || 0}</strong> Followers</div>
-            <div><strong>{user.following?.length || 0}</strong> Following</div>
+            <div
+              onClick={() => canViewFollowersFollowing() && navigate(`/followers/${id}/followers`)}
+              className={canViewFollowersFollowing() ? 'stat-clickable' : ''}
+            >
+              <strong>{user.followers?.length || 0}</strong> Followers
+            </div>
+            <div
+              onClick={() => canViewFollowersFollowing() && navigate(`/followers/${id}/following`)}
+              className={canViewFollowersFollowing() ? 'stat-clickable' : ''}
+            >
+              <strong>{user.following?.length || 0}</strong> Following
+            </div>
           </div>
         </div>
         {!isOwnProfile && (
@@ -122,12 +152,34 @@ function Profile() {
       {error && <p className="error-message">{error}</p>}
 
       <div className="profile-posts-section">
-        <h2>Posts</h2>
-        {posts.length === 0 ? (
-          <p className="no-posts">No posts yet</p>
+        <div className="posts-filter-tabs">
+          <button
+            className={`filter-tab ${activeFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('all')}
+          >
+            All
+          </button>
+          <button
+            className={`filter-tab ${activeFilter === 'images' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('images')}
+          >
+            Images
+          </button>
+          <button
+            className={`filter-tab ${activeFilter === 'reels' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('reels')}
+          >
+            Reels
+          </button>
+        </div>
+
+        {getFilteredPosts().length === 0 ? (
+          <p className="no-posts">
+            {posts.length === 0 ? 'No posts yet' : `No ${activeFilter}s yet`}
+          </p>
         ) : (
           <div className="posts-grid">
-            {posts.map((post) => (
+            {getFilteredPosts().map((post) => (
               <PostThumbnail key={post._id} post={post} />
             ))}
           </div>
