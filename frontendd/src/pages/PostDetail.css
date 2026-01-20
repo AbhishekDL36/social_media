@@ -1,0 +1,27 @@
+.post-detail-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #0095f6;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 0;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  color: #0a66c2;
+}
+
+.post-detail-content {
+  background-color: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 1px;
+}

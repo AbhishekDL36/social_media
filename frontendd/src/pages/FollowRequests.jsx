@@ -15,7 +15,7 @@ function FollowRequests() {
   const fetchRequests = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       const response = await axios.get('/api/follow-requests/pending', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -29,7 +29,7 @@ function FollowRequests() {
 
   const handleApprove = async (requestId) => {
     try {
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       await axios.put(`/api/follow-requests/approve/${requestId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -42,7 +42,7 @@ function FollowRequests() {
 
   const handleReject = async (requestId) => {
     try {
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       await axios.put(`/api/follow-requests/reject/${requestId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })

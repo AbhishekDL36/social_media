@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
+import PostThumbnail from '../components/PostThumbnail'
 import './Profile.css'
 
 function Profile() {
   const { id } = useParams()
   const [user, setUser] = useState(null)
+  const [posts, setPosts] = useState([])
   const [isFollowing, setIsFollowing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [requestSent, setRequestSent] = useState(false)
-  const currentUserId = localStorage.getItem('userId')
+  const currentUserId = sessionStorage.getItem('userId')
   const isOwnProfile = currentUserId === id
 
   useEffect(() => {
     fetchUserProfile()
+    fetchUserPosts()
   }, [id])
 
   const fetchUserProfile = async () => {
@@ -24,7 +27,7 @@ function Profile() {
       
       // Check if current user is following this user
       if (!isOwnProfile && currentUserId) {
-        const token = localStorage.getItem('token')
+        const token = sessionStorage.getItem('token')
         const currentUserRes = await axios.get(`/api/users/${currentUserId}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
@@ -38,10 +41,19 @@ function Profile() {
     }
   }
 
+  const fetchUserPosts = async () => {
+    try {
+      const response = await axios.get(`/api/posts/user/${id}`)
+      setPosts(response.data)
+    } catch (err) {
+      console.error('Error fetching posts:', err)
+    }
+  }
+
   const handleFollow = async () => {
     try {
       setError('')
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       const response = await axios.put(
         `/api/users/${id}/follow`,
         {},
@@ -61,7 +73,7 @@ function Profile() {
   const handleSendFollowRequest = async () => {
     try {
       setError('')
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       await axios.post(
         `/api/follow-requests/send/${id}`,
         {},
@@ -86,6 +98,7 @@ function Profile() {
           </div>
           <p>{user.bio}</p>
           <div className="stats">
+            <div><strong>{posts.length}</strong> Posts</div>
             <div><strong>{user.followers?.length || 0}</strong> Followers</div>
             <div><strong>{user.following?.length || 0}</strong> Following</div>
           </div>
@@ -107,6 +120,19 @@ function Profile() {
         )}
       </div>
       {error && <p className="error-message">{error}</p>}
+
+      <div className="profile-posts-section">
+        <h2>Posts</h2>
+        {posts.length === 0 ? (
+          <p className="no-posts">No posts yet</p>
+        ) : (
+          <div className="posts-grid">
+            {posts.map((post) => (
+              <PostThumbnail key={post._id} post={post} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

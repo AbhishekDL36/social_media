@@ -15,7 +15,7 @@ function Notifications() {
   const fetchNotifications = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       const response = await axios.get('/api/notifications', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -29,7 +29,7 @@ function Notifications() {
 
   const handleMarkAsRead = async (notificationId) => {
     try {
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       await axios.put(`/api/notifications/${notificationId}/read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -41,7 +41,7 @@ function Notifications() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       await axios.put('/api/notifications', {}, {
         headers: { Authorization: `Bearer ${token}` }
       })

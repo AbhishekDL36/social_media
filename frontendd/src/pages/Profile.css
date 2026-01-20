@@ -95,3 +95,44 @@
   margin-top: 15px;
   font-size: 14px;
 }
+
+.profile-posts-section {
+  margin-top: 40px;
+  padding-top: 40px;
+  border-top: 1px solid #dbdbdb;
+}
+
+.profile-posts-section h2 {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  color: #262626;
+}
+
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .posts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .posts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.no-posts {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  padding: 40px;
+}

@@ -1,6 +1,7 @@
 const express = require('express');
 const Post = require('../models/Post');
 const { protect } = require('../middleware/auth');
+const upload = require('../config/multer');
 
 const router = express.Router();
 
@@ -24,15 +25,55 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
-// Create post
-router.post('/', protect, async (req, res) => {
+// Get user's posts by user ID
+router.get('/user/:userId', async (req, res) => {
   try {
-    const { caption, image } = req.body;
+    const posts = await Post.find({ author: req.params.userId })
+      .sort({ createdAt: -1 })
+      .populate('author', 'username profilePicture')
+      .populate('comments.author', 'username');
+    
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get single post by ID
+router.get('/:id', protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id)
+      .populate('author', 'username profilePicture')
+      .populate('comments.author', 'username');
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    res.json(post);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Create post with file upload
+router.post('/', protect, upload.single('media'), async (req, res) => {
+  try {
+    const { caption } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Determine media type
+    const mediaType = req.file.mimetype.startsWith('image/') ? 'image' : 'video';
+    const mediaPath = `/uploads/${req.file.filename}`;
 
     const post = new Post({
       author: req.userId,
       caption,
-      image
+      media: mediaPath,
+      mediaType
     });
 
     await post.save();

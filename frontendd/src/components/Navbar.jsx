@@ -5,7 +5,7 @@ import './Navbar.css'
 
 function Navbar() {
   const navigate = useNavigate()
-  const userId = localStorage.getItem('userId')
+  const userId = sessionStorage.getItem('userId')
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
@@ -17,7 +17,7 @@ function Navbar() {
 
   const fetchUnreadCount = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       const response = await axios.get('/api/notifications/unread/count', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -28,8 +28,8 @@ function Navbar() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userId')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('userId')
     navigate('/login')
   }
 

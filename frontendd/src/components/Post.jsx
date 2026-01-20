@@ -8,7 +8,7 @@ function Post({ post, onPostUpdate }) {
 
   const handleLike = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       await axios.put(
         `/api/posts/${post._id}/like`,
         {},
@@ -26,7 +26,7 @@ function Post({ post, onPostUpdate }) {
     if (!comment) return
 
     try {
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       await axios.post(
         `/api/posts/${post._id}/comment`,
         { text: comment },
@@ -44,7 +44,11 @@ function Post({ post, onPostUpdate }) {
       <div className="post-header">
         <h3>{post.author?.username}</h3>
       </div>
-      <img src={post.image} alt="Post" className="post-image" />
+      {post.mediaType === 'video' ? (
+        <video src={post.media} controls className="post-media"></video>
+      ) : (
+        <img src={post.media} alt="Post" className="post-media" />
+      )}
       <div className="post-actions">
         <button onClick={handleLike} className={liked ? 'liked' : ''}>
           ♡ Like ({post.likes?.length || 0})

@@ -15,8 +15,8 @@ function Settings() {
 
   const fetchUserData = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const userId = localStorage.getItem('userId')
+      const token = sessionStorage.getItem('token')
+      const userId = sessionStorage.getItem('userId')
       const response = await axios.get(`/api/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -33,7 +33,7 @@ function Settings() {
     try {
       setSaving(true)
       setMessage('')
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       const response = await axios.put('/api/users/toggle-privacy', {}, {
         headers: { Authorization: `Bearer ${token}` }
       })

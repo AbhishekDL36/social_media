@@ -6,9 +6,11 @@ import Post from '../components/Post'
 function Home() {
   const [posts, setPosts] = useState([])
   const [caption, setCaption] = useState('')
-  const [image, setImage] = useState('')
+  const [media, setMedia] = useState(null)
+  const [preview, setPreview] = useState(null)
   const [loading, setLoading] = useState(false)
   const [feedLoading, setFeedLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetchPosts()
@@ -17,7 +19,7 @@ function Home() {
   const fetchPosts = async () => {
     try {
       setFeedLoading(true)
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       const response = await axios.get('/api/posts', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -29,26 +31,48 @@ function Home() {
     }
   }
 
+  const handleMediaChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setError('')
+      setMedia(file)
+      
+      // Create preview
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleCreatePost = async (e) => {
     e.preventDefault()
-    if (!caption || !image) {
-      alert('Please fill in all fields')
+    if (!caption || !media) {
+      setError('Please add a caption and select an image or video')
       return
     }
 
     setLoading(true)
+    setError('')
     try {
-      const token = localStorage.getItem('token')
-      const response = await axios.post(
-        '/api/posts',
-        { caption, image },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+      const token = sessionStorage.getItem('token')
+      const formData = new FormData()
+      formData.append('caption', caption)
+      formData.append('media', media)
+
+      const response = await axios.post('/api/posts', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      })
       setPosts([response.data, ...posts])
       setCaption('')
-      setImage('')
+      setMedia(null)
+      setPreview(null)
     } catch (err) {
-      alert('Error creating post')
+      setError(err.response?.data?.message || 'Error creating post')
     }
     setLoading(false)
   }
@@ -63,12 +87,41 @@ function Home() {
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
           />
-          <input
-            type="text"
-            placeholder="Image URL"
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
-          />
+          
+          <div className="media-input-section">
+            <label htmlFor="media-input" className="media-label">
+              📷 Choose Image or Video
+            </label>
+            <input
+              id="media-input"
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleMediaChange}
+              className="media-input"
+            />
+          </div>
+
+          {preview && (
+            <div className="preview-section">
+              {media?.type.startsWith('image/') ? (
+                <img src={preview} alt="Preview" className="preview-image" />
+              ) : (
+                <video src={preview} className="preview-video" controls></video>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setMedia(null)
+                  setPreview(null)
+                }}
+                className="remove-media-btn"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+
+          {error && <p className="error-message">{error}</p>}
           <button type="submit" disabled={loading}>{loading ? 'Posting...' : 'Post'}</button>
         </form>
       </div>

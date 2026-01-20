@@ -14,8 +14,8 @@ function Login({ setUser }) {
     try {
       const response = await axios.post('/api/auth/login', { email, password })
       const { token, userId } = response.data
-      localStorage.setItem('token', token)
-      localStorage.setItem('userId', userId)
+      sessionStorage.setItem('token', token)
+      sessionStorage.setItem('userId', userId)
       setUser({ token, userId })
       navigate('/')
     } catch (err) {

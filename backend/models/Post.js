@@ -7,9 +7,14 @@ const postSchema = new mongoose.Schema({
     required: true
   },
   caption: String,
-  image: {
+  media: {
     type: String,
     required: true
+  },
+  mediaType: {
+    type: String,
+    enum: ['image', 'video'],
+    default: 'image'
   },
   likes: [{
     type: mongoose.Schema.Types.ObjectId,

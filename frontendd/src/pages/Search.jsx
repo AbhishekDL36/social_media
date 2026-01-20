@@ -21,7 +21,7 @@ function Search() {
 
     setLoading(true)
     try {
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       const response = await axios.get(`/api/users/search/${searchQuery}`, {
         headers: { Authorization: `Bearer ${token}` }
       })

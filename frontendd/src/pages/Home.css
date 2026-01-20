@@ -57,6 +57,70 @@
   cursor: not-allowed;
 }
 
+.media-input-section {
+  margin: 10px 0;
+}
+
+.media-label {
+  display: block;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 2px dashed #dbdbdb;
+  border-radius: 4px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: #262626;
+  transition: all 0.2s;
+}
+
+.media-label:hover {
+  border-color: #0095f6;
+  background-color: #f0f8ff;
+}
+
+.media-input {
+  display: none;
+}
+
+.preview-section {
+  margin: 15px 0;
+  position: relative;
+}
+
+.preview-image,
+.preview-video {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 4px;
+  background-color: #000;
+}
+
+.remove-media-btn {
+  background-color: #ed4956;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.remove-media-btn:hover {
+  background-color: #c4314f;
+}
+
+.error-message {
+  color: #ed4956;
+  font-size: 13px;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #ffe0e0;
+  border-radius: 4px;
+}
+
 .feed-section {
   background-color: #fff;
   border: 1px solid #dbdbdb;

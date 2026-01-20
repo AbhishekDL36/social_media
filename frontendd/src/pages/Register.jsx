@@ -67,8 +67,8 @@ function Register({ setUser }) {
         otp 
       })
       const { token, userId } = response.data
-      localStorage.setItem('token', token)
-      localStorage.setItem('userId', userId)
+      sessionStorage.setItem('token', token)
+      sessionStorage.setItem('userId', userId)
       setUser({ token, userId })
       setStep('success')
       setTimeout(() => navigate('/'), 2000)

@@ -15,9 +15,14 @@
   font-weight: 600;
 }
 
-.post-image {
+.post-media {
   width: 100%;
   display: block;
+  background-color: #000;
+}
+
+.post-media video {
+  background-color: #000;
 }
 
 .post-actions {

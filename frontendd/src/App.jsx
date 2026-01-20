@@ -9,14 +9,15 @@ import Search from './pages/Search'
 import Notifications from './pages/Notifications'
 import FollowRequests from './pages/FollowRequests'
 import Settings from './pages/Settings'
+import PostDetail from './pages/PostDetail'
 import Navbar from './components/Navbar'
 
 function App() {
   const [user, setUser] = useState(null)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const userId = localStorage.getItem('userId')
+    const token = sessionStorage.getItem('token')
+    const userId = sessionStorage.getItem('userId')
     if (token && userId) {
       setUser({ token, userId })
     }
@@ -34,6 +35,7 @@ function App() {
         <Route path="/notifications" element={user ? <Notifications /> : <Login setUser={setUser} />} />
         <Route path="/follow-requests" element={user ? <FollowRequests /> : <Login setUser={setUser} />} />
         <Route path="/settings" element={user ? <Settings /> : <Login setUser={setUser} />} />
+        <Route path="/post/:postId" element={user ? <PostDetail /> : <Login setUser={setUser} />} />
       </Routes>
     </Router>
   )

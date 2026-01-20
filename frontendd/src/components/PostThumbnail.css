@@ -1,0 +1,78 @@
+.post-thumbnail {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background-color: #000;
+  cursor: pointer;
+  border: 1px solid #dbdbdb;
+  transition: all 0.3s;
+}
+
+.post-thumbnail:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.thumbnail-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumbnail-video {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.video-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.thumbnail-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.post-thumbnail:hover .thumbnail-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.thumbnail-stats {
+  display: flex;
+  gap: 20px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.post-thumbnail:hover .thumbnail-stats {
+  opacity: 1;
+}
+
+.thumbnail-stats span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
