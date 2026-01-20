@@ -5,6 +5,10 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Profile from './pages/Profile'
+import Search from './pages/Search'
+import Notifications from './pages/Notifications'
+import FollowRequests from './pages/FollowRequests'
+import Settings from './pages/Settings'
 import Navbar from './components/Navbar'
 
 function App() {
@@ -26,6 +30,10 @@ function App() {
         <Route path="/register" element={<Register setUser={setUser} />} />
         <Route path="/" element={user ? <Home /> : <Login setUser={setUser} />} />
         <Route path="/profile/:id" element={user ? <Profile /> : <Login setUser={setUser} />} />
+        <Route path="/search" element={user ? <Search /> : <Login setUser={setUser} />} />
+        <Route path="/notifications" element={user ? <Notifications /> : <Login setUser={setUser} />} />
+        <Route path="/follow-requests" element={user ? <FollowRequests /> : <Login setUser={setUser} />} />
+        <Route path="/settings" element={user ? <Settings /> : <Login setUser={setUser} />} />
       </Routes>
     </Router>
   )

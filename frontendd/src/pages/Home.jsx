@@ -8,6 +8,7 @@ function Home() {
   const [caption, setCaption] = useState('')
   const [image, setImage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [feedLoading, setFeedLoading] = useState(true)
 
   useEffect(() => {
     fetchPosts()
@@ -15,10 +16,16 @@ function Home() {
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get('/api/posts')
+      setFeedLoading(true)
+      const token = localStorage.getItem('token')
+      const response = await axios.get('/api/posts', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       setPosts(response.data)
     } catch (err) {
       console.error('Error fetching posts:', err)
+    } finally {
+      setFeedLoading(false)
     }
   }
 
@@ -66,10 +73,19 @@ function Home() {
         </form>
       </div>
 
-      <div className="posts">
-        {posts.map((post) => (
-          <Post key={post._id} post={post} onPostUpdate={fetchPosts} />
-        ))}
+      <div className="feed-section">
+        <h2>Feed</h2>
+        {feedLoading ? (
+          <p className="loading">Loading feed...</p>
+        ) : posts.length === 0 ? (
+          <p className="empty-feed">No posts yet. Follow users to see their posts!</p>
+        ) : (
+          <div className="posts">
+            {posts.map((post) => (
+              <Post key={post._id} post={post} onPostUpdate={fetchPosts} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -57,6 +57,28 @@
   cursor: not-allowed;
 }
 
+.feed-section {
+  background-color: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 1px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.feed-section h2 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.loading,
+.empty-feed {
+  text-align: center;
+  color: #666;
+  padding: 20px;
+  font-size: 14px;
+}
+
 .posts {
   display: flex;
   flex-direction: column;

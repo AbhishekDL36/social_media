@@ -1,0 +1,123 @@
+.search-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.search-box {
+  background-color: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 1px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.search-box h2 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.search-box form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #dbdbdb;
+  border-radius: 3px;
+  font-size: 14px;
+}
+
+.search-box button {
+  background-color: #0095f6;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.search-box button:hover {
+  background-color: #0a66c2;
+}
+
+.search-box button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-card {
+  background-color: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 1px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-card:hover {
+  background-color: #f8f8f8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.user-card img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #e0e0e0;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-info h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+}
+
+.user-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.user-info .bio {
+  margin-top: 5px;
+  color: #555;
+}
+
+.user-info .followers {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #999;
+}
+
+.error {
+  color: #ed4956;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.no-results {
+  text-align: center;
+  color: #666;
+  padding: 30px;
+  font-size: 14px;
+}

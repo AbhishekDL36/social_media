@@ -1,0 +1,75 @@
+import { useState } from 'react'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
+import './Search.css'
+
+function Search() {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const navigate = useNavigate()
+
+  const handleSearch = async (e) => {
+    e.preventDefault()
+    setError('')
+    
+    if (searchQuery.length < 2) {
+      setError('Search query must be at least 2 characters')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`/api/users/search/${searchQuery}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setUsers(response.data)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Search failed')
+      setUsers([])
+    }
+    setLoading(false)
+  }
+
+  return (
+    <div className="search-container">
+      <div className="search-box">
+        <h2>Search Friends</h2>
+        <form onSubmit={handleSearch}>
+          <input
+            type="text"
+            placeholder="Search by username or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button type="submit" disabled={loading}>{loading ? 'Searching...' : 'Search'}</button>
+        </form>
+        {error && <p className="error">{error}</p>}
+      </div>
+
+      <div className="search-results">
+        {users.length > 0 ? (
+          users.map((user) => (
+            <div key={user._id} className="user-card" onClick={() => navigate(`/profile/${user._id}`)}>
+              {user.profilePicture && <img src={user.profilePicture} alt={user.username} />}
+              <div className="user-info">
+                <h3>{user.username}</h3>
+                <p>{user.email}</p>
+                {user.bio && <p className="bio">{user.bio}</p>}
+                <p className="followers">{user.followers?.length || 0} followers</p>
+              </div>
+            </div>
+          ))
+        ) : searchQuery && !loading ? (
+          <p className="no-results">No users found</p>
+        ) : (
+          <p className="no-results">Start typing to search for friends</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default Search

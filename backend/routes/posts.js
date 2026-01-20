@@ -4,10 +4,20 @@ const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Get all posts
-router.get('/', async (req, res) => {
+// Get feed (posts from followed users)
+router.get('/', protect, async (req, res) => {
   try {
-    const posts = await Post.find().populate('author', 'username profilePicture').populate('comments.author', 'username');
+    const currentUser = await require('../models/User').findById(req.userId);
+    const followingIds = currentUser.following || [];
+    
+    // Include current user's own posts
+    followingIds.push(req.userId);
+
+    const posts = await Post.find({ author: { $in: followingIds } })
+      .sort({ createdAt: -1 })
+      .populate('author', 'username profilePicture')
+      .populate('comments.author', 'username');
+    
     res.json(posts);
   } catch (err) {
     res.status(500).json({ message: err.message });
