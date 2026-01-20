@@ -17,7 +17,32 @@ function Register({ setUser }) {
   const handleSendOTP = async (e) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
     setLoading(true)
+
+    // Validate username
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/
+    if (!usernameRegex.test(username)) {
+      setError('Username must be 3-20 characters, alphanumeric and underscores only')
+      setLoading(false)
+      return
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setError('Invalid email format')
+      setLoading(false)
+      return
+    }
+
+    // Validate password
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+    if (!passwordRegex.test(password)) {
+      setError('Password must be 8+ chars with uppercase, lowercase, number, and special char (@$!%*?&)')
+      setLoading(false)
+      return
+    }
 
     try {
       await axios.post('/api/auth/send-otp', { email })
