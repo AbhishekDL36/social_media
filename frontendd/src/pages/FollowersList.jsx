@@ -10,6 +10,7 @@ function FollowersList() {
   const [error, setError] = useState('')
   const navigate = useNavigate()
   const currentUserId = sessionStorage.getItem('userId')
+  const isOwnProfile = currentUserId === userId
 
   useEffect(() => {
     fetchUsersList()
@@ -47,6 +48,32 @@ function FollowersList() {
     }
   }
 
+  const handleRemoveFollower = async (followerId, e) => {
+    e.stopPropagation()
+    try {
+      const token = sessionStorage.getItem('token')
+      await axios.delete(`/api/follow-requests/remove-follower/${followerId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setUsers(users.filter(u => u._id !== followerId))
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error removing follower')
+    }
+  }
+
+  const handleUnfollow = async (userId, e) => {
+    e.stopPropagation()
+    try {
+      const token = sessionStorage.getItem('token')
+      await axios.delete(`/api/follow-requests/unfollow/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setUsers(users.filter(u => u._id !== userId))
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error unfollowing user')
+    }
+  }
+
   if (loading) return <div className="followers-list-container"><p>Loading...</p></div>
 
   return (
@@ -66,19 +93,33 @@ function FollowersList() {
             <div
               key={user._id}
               className="follower-item"
-              onClick={() => navigate(`/profile/${user._id}`)}
             >
-              <img
-                src={user.profilePicture || 'https://via.placeholder.com/50'}
-                alt={user.username}
-                className="follower-avatar"
-              />
-              <div className="follower-info">
-                <h4>{user.username}</h4>
-                {user.bio && <p className="bio">{user.bio}</p>}
+              <div
+                className="follower-content"
+                onClick={() => navigate(`/profile/${user._id}`)}
+              >
+                <img
+                  src={user.profilePicture || 'https://via.placeholder.com/50'}
+                  alt={user.username}
+                  className="follower-avatar"
+                />
+                <div className="follower-info">
+                  <h4>{user.username}</h4>
+                  {user.bio && <p className="bio">{user.bio}</p>}
+                </div>
               </div>
-              {currentUserId !== user._id && (
-                <button className="view-btn">View</button>
+              
+              {isOwnProfile && currentUserId === userId && (
+                <button
+                  onClick={(e) => 
+                    type === 'followers' 
+                      ? handleRemoveFollower(user._id, e)
+                      : handleUnfollow(user._id, e)
+                  }
+                  className="action-btn"
+                >
+                  {type === 'followers' ? 'Remove' : 'Unfollow'}
+                </button>
               )}
             </div>
           ))}

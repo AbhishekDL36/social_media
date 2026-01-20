@@ -175,4 +175,36 @@ router.delete('/unfollow/:id', protect, async (req, res) => {
   }
 });
 
+// Remove follower
+router.delete('/remove-follower/:id', protect, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.userId);
+    const followerToRemove = await User.findById(req.params.id);
+
+    if (!followerToRemove) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Remove from current user's followers
+    currentUser.followers = currentUser.followers.filter(id => id.toString() !== req.params.id);
+    
+    // Remove current user from follower's following
+    followerToRemove.following = followerToRemove.following.filter(id => id.toString() !== req.userId);
+
+    await currentUser.save();
+    await followerToRemove.save();
+
+    // Delete follow notification
+    await Notification.deleteOne({
+      recipient: req.userId,
+      sender: req.params.id,
+      type: 'follow'
+    });
+
+    res.json({ message: 'Follower removed successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

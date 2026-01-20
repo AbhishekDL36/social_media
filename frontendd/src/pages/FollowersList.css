@@ -60,9 +60,9 @@
 .follower-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 15px;
   border-bottom: 1px solid #efefef;
-  cursor: pointer;
   transition: background-color 0.2s;
   gap: 15px;
 }
@@ -73,6 +73,14 @@
 
 .follower-item:hover {
   background-color: #f8f8f8;
+}
+
+.follower-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+  cursor: pointer;
 }
 
 .follower-avatar {
@@ -103,17 +111,23 @@
   word-break: break-word;
 }
 
-.view-btn {
-  background: none;
+.action-btn {
+  background-color: #ed4956;
+  color: white;
   border: none;
-  color: #0095f6;
+  padding: 8px 16px;
+  border-radius: 4px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  padding: 0;
   white-space: nowrap;
+  transition: all 0.2s;
 }
 
-.view-btn:hover {
-  color: #0a66c2;
+.action-btn:hover {
+  background-color: #c4314f;
+}
+
+.action-btn:active {
+  transform: scale(0.98);
 }
