@@ -41,6 +41,7 @@ function Navbar() {
           <button onClick={() => navigate('/')} className="nav-link">Feed</button>
           <button onClick={() => navigate('/search')} className="nav-link">Search</button>
           <button onClick={() => navigate('/follow-requests')} className="nav-link">Requests</button>
+          <button onClick={() => navigate('/messages')} className="nav-link">Messages</button>
           <button onClick={() => {
             navigate('/notifications')
             setUnreadCount(0)

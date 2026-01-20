@@ -11,6 +11,7 @@ import FollowRequests from './pages/FollowRequests'
 import Settings from './pages/Settings'
 import PostDetail from './pages/PostDetail'
 import FollowersList from './pages/FollowersList'
+import Messages from './pages/Messages'
 import Navbar from './components/Navbar'
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
         <Route path="/settings" element={user ? <Settings /> : <Login setUser={setUser} />} />
         <Route path="/post/:postId" element={user ? <PostDetail /> : <Login setUser={setUser} />} />
         <Route path="/followers/:userId/:type" element={user ? <FollowersList /> : <Login setUser={setUser} />} />
+        <Route path="/messages" element={user ? <Messages /> : <Login setUser={setUser} />} />
       </Routes>
     </Router>
   )

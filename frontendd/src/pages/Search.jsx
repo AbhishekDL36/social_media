@@ -3,6 +3,10 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import './Search.css'
 
+function messageUser(userId, navigate) {
+  navigate(`/messages?user=${userId}`)
+}
+
 function Search() {
   const [searchQuery, setSearchQuery] = useState('')
   const [users, setUsers] = useState([])
@@ -52,14 +56,25 @@ function Search() {
       <div className="search-results">
         {users.length > 0 ? (
           users.map((user) => (
-            <div key={user._id} className="user-card" onClick={() => navigate(`/profile/${user._id}`)}>
-              {user.profilePicture && <img src={user.profilePicture} alt={user.username} />}
-              <div className="user-info">
-                <h3>{user.username}</h3>
-                <p>{user.email}</p>
-                {user.bio && <p className="bio">{user.bio}</p>}
-                <p className="followers">{user.followers?.length || 0} followers</p>
+            <div key={user._id} className="user-card">
+              <div
+                className="user-card-content"
+                onClick={() => navigate(`/profile/${user._id}`)}
+              >
+                {user.profilePicture && <img src={user.profilePicture} alt={user.username} />}
+                <div className="user-info">
+                  <h3>{user.username}</h3>
+                  <p>{user.email}</p>
+                  {user.bio && <p className="bio">{user.bio}</p>}
+                  <p className="followers">{user.followers?.length || 0} followers</p>
+                </div>
               </div>
+              <button
+                className="message-btn-search"
+                onClick={() => messageUser(user._id, navigate)}
+              >
+                Message
+              </button>
             </div>
           ))
         ) : searchQuery && !loading ? (

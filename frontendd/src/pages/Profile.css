@@ -56,8 +56,15 @@
   color: #0095f6;
 }
 
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 .follow-btn,
-.request-btn {
+.request-btn,
+.message-btn {
   background-color: #0095f6;
   color: white;
   padding: 10px 30px;
@@ -65,11 +72,21 @@
   border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .follow-btn:hover,
-.request-btn:hover {
+.request-btn:hover,
+.message-btn:hover {
   background-color: #0a66c2;
+}
+
+.message-btn {
+  background-color: #262626;
+}
+
+.message-btn:hover {
+  background-color: #404040;
 }
 
 .request-sent {

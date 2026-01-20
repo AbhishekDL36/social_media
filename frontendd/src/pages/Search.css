@@ -64,14 +64,22 @@
   padding: 15px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 15px;
-  cursor: pointer;
   transition: all 0.2s;
 }
 
 .user-card:hover {
   background-color: #f8f8f8;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.user-card-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+  cursor: pointer;
 }
 
 .user-card img {
@@ -113,6 +121,23 @@
   color: #ed4956;
   font-size: 14px;
   margin-top: 10px;
+}
+
+.message-btn-search {
+  background-color: #262626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.message-btn-search:hover {
+  background-color: #404040;
 }
 
 .no-results {

@@ -134,7 +134,7 @@ function Profile() {
           </div>
         </div>
         {!isOwnProfile && (
-          <>
+          <div className="profile-actions">
             {user.isPrivate && !isFollowing && !requestSent ? (
               <button onClick={handleSendFollowRequest} className="request-btn">
                 Send Request
@@ -146,7 +146,10 @@ function Profile() {
                 {isFollowing ? 'Following' : 'Follow'}
               </button>
             )}
-          </>
+            <button onClick={() => navigate(`/messages?user=${id}`)} className="message-btn">
+              Message
+            </button>
+          </div>
         )}
       </div>
       {error && <p className="error-message">{error}</p>}
