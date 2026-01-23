@@ -28,6 +28,9 @@
 .post-actions {
   padding: 16px;
   border-bottom: 1px solid #dbdbdb;
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
 .post-actions button {
@@ -37,10 +40,23 @@
   font-size: 14px;
   cursor: pointer;
   font-weight: 600;
+  transition: color 0.2s;
 }
 
-.post-actions button.liked {
+.post-actions button.like-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.post-actions button.like-btn.liked {
   color: #ed4956;
+}
+
+.post-actions button.likers-count {
+  color: #666;
+  font-weight: 400;
+  font-size: 13px;
 }
 
 .post-caption,
@@ -51,6 +67,28 @@
 
 .comment {
   margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.comment-text {
+  flex: 1;
+}
+
+.comment-like-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 12px;
+  padding: 0;
+  margin-left: 8px;
+  transition: color 0.2s;
+}
+
+.comment-like-btn.liked {
+  color: #ed4956;
 }
 
 .comment-form {

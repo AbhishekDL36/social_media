@@ -82,6 +82,27 @@
   color: #262626;
 }
 
+.message-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message-like-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  font-size: 12px;
+  padding: 0;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.message-like-btn.liked {
+  color: #ed4956;
+}
+
 .message .timestamp {
   font-size: 12px;
   color: #999;

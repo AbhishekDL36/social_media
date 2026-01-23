@@ -118,7 +118,7 @@ function ChatWindow({ user, onBack }) {
                   onClick={() => handleMessageLike(msg._id)}
                   className={`message-like-btn ${msg.likes?.some(id => String(id) === String(currentUserId)) ? 'liked' : ''}`}
                 >
-                  ♡ {msg.likes?.length || 0}
+                  {msg.likes?.some(id => String(id) === String(currentUserId)) ? '❤️' : '♡'} {msg.likes?.length || 0}
                 </button>
               </div>
               <span className="timestamp">

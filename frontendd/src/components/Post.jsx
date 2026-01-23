@@ -1,11 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
+import LikersModal from './LikersModal'
 import './Post.css'
 
 function Post({ post, onPostUpdate }) {
   const [liked, setLiked] = useState(false)
   const [comment, setComment] = useState('')
+  const [showLikersModal, setShowLikersModal] = useState(false)
   const currentUserId = sessionStorage.getItem('userId')
+
+  // Check if current user has liked this post
+  useEffect(() => {
+    const userHasLiked = post.likes?.some(id => String(id) === String(currentUserId))
+    setLiked(userHasLiked || false)
+  }, [post._id, currentUserId, post.likes])
 
   const handleLike = async () => {
     try {
@@ -65,10 +73,15 @@ function Post({ post, onPostUpdate }) {
         <img src={post.media} alt="Post" className="post-media" />
       )}
       <div className="post-actions">
-        <button onClick={handleLike} className={liked ? 'liked' : ''}>
-          ♡ Like ({post.likes?.length || 0})
-        </button>
-      </div>
+         <button onClick={handleLike} className={`like-btn ${liked ? 'liked' : ''}`}>
+           {liked ? '❤️' : '♡'} Like
+         </button>
+         {post.likes?.length > 0 && (
+           <button onClick={() => setShowLikersModal(true)} className="likers-count">
+             {post.likes.length} {post.likes.length === 1 ? 'like' : 'likes'}
+           </button>
+         )}
+       </div>
       <div className="post-caption">
         <strong>{post.author?.username}</strong> {post.caption}
       </div>
@@ -82,7 +95,7 @@ function Post({ post, onPostUpdate }) {
                onClick={() => handleCommentLike(idx)}
                className={`comment-like-btn ${com.likes?.some(id => String(id) === String(currentUserId)) ? 'liked' : ''}`}
              >
-               ♡ {com.likes?.length || 0}
+               {com.likes?.some(id => String(id) === String(currentUserId)) ? '❤️' : '♡'} {com.likes?.length || 0}
              </button>
            </div>
          ))}
@@ -96,8 +109,12 @@ function Post({ post, onPostUpdate }) {
         />
         <button type="submit">Post</button>
       </form>
-    </div>
-  )
-}
+
+      {showLikersModal && (
+        <LikersModal postId={post._id} onClose={() => setShowLikersModal(false)} />
+      )}
+      </div>
+      )
+      }
 
 export default Post

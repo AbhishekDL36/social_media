@@ -57,6 +57,22 @@ router.get('/:id', protect, async (req, res) => {
   }
 });
 
+// Get list of users who liked a post
+router.get('/:id/likes', protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id)
+      .populate('likes', 'username profilePicture');
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    res.json(post.likes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Create post with file upload
 router.post('/', protect, upload.single('media'), async (req, res) => {
   try {
