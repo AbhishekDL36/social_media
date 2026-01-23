@@ -159,65 +159,61 @@ router.post('/:id/comment', protect, async (req, res) => {
   }
 });
 
-// Like/Unlike comment
-router.put('/:postId/comment/:commentId/like', protect, async (req, res) => {
+// Like/Unlike comment by index
+router.put('/:id/comment/:index/like', protect, async (req, res) => {
   try {
-    console.log('Like comment request:', req.params);
-    const post = await Post.findById(req.params.postId);
+    const post = await Post.findById(req.params.id);
     if (!post) {
-      console.log('Post not found:', req.params.postId);
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // Find comment by index instead of id
-    const commentIndex = post.comments.findIndex(c => c._id.toString() === req.params.commentId);
-    if (commentIndex === -1) {
-      console.log('Comment not found. Available comments:', post.comments.map(c => c._id.toString()));
-      console.log('Looking for:', req.params.commentId);
+    const index = parseInt(req.params.index);
+    if (isNaN(index) || index < 0 || index >= post.comments.length) {
       return res.status(404).json({ message: 'Comment not found' });
     }
 
-    const comment = post.comments[commentIndex];
-    
+    const comment = post.comments[index];
+
     // Initialize likes array if it doesn't exist
     if (!comment.likes) {
       comment.likes = [];
     }
 
-    const isLiking = !comment.likes.some(id => id.toString() === req.userId);
+    // Check if already liked
+    const alreadyLiked = comment.likes.some(id => id.toString() === req.userId);
 
-    if (isLiking) {
-      comment.likes.push(req.userId);
-      
-      // Create notification for comment author (only if not liking own comment)
-      if (comment.author.toString() !== req.userId) {
-        const notification = new Notification({
-          recipient: comment.author,
-          sender: req.userId,
-          type: 'like',
-          post: post._id,
-          message: 'liked your comment'
-        });
-        await notification.save();
-      }
-    } else {
+    if (alreadyLiked) {
+      // Remove like
       comment.likes = comment.likes.filter(id => id.toString() !== req.userId);
       
-      // Delete comment like notification
+      // Delete notification
       await Notification.deleteOne({
         recipient: comment.author,
         sender: req.userId,
-        type: 'like',
-        post: post._id,
-        message: 'liked your comment'
+        type: 'like'
       });
+    } else {
+      // Add like
+      comment.likes.push(req.userId);
+      
+      // Create notification (only if not liking own comment)
+      if (comment.author.toString() !== req.userId) {
+        await Notification.create({
+          recipient: comment.author,
+          sender: req.userId,
+          type: 'like',
+          post: post._id
+        });
+      }
     }
 
     await post.save();
     await post.populate('author', 'username profilePicture');
     await post.populate('comments.author', 'username');
+    
     res.json(post);
   } catch (err) {
+    console.error('Error liking comment:', err);
     res.status(500).json({ message: err.message });
   }
 });

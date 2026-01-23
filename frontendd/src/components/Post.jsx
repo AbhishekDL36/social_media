@@ -73,13 +73,13 @@ function Post({ post, onPostUpdate }) {
         <strong>{post.author?.username}</strong> {post.caption}
       </div>
       <div className="post-comments">
-         {post.comments?.map((com) => (
-           <div key={com._id} className="comment">
+         {post.comments?.map((com, idx) => (
+           <div key={idx} className="comment">
              <div className="comment-text">
                <strong>{com.author?.username}</strong> {com.text}
              </div>
              <button
-               onClick={() => handleCommentLike(com._id)}
+               onClick={() => handleCommentLike(idx)}
                className={`comment-like-btn ${com.likes?.some(id => String(id) === String(currentUserId)) ? 'liked' : ''}`}
              >
                ♡ {com.likes?.length || 0}
