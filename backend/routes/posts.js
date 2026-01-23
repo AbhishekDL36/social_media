@@ -6,9 +6,13 @@ const upload = require('../config/multer');
 
 const router = express.Router();
 
-// Get feed (posts from followed users)
+// Get feed (posts from followed users) with pagination
 router.get('/', protect, async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     const currentUser = await require('../models/User').findById(req.userId);
     const followingIds = currentUser.following || [];
     
@@ -17,10 +21,23 @@ router.get('/', protect, async (req, res) => {
 
     const posts = await Post.find({ author: { $in: followingIds } })
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate('author', 'username profilePicture')
-      .populate('comments.author', 'username');
+      .populate('comments.author', 'username')
+      .lean();
     
-    res.json(posts);
+    const total = await Post.countDocuments({ author: { $in: followingIds } });
+
+    res.json({
+      posts,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

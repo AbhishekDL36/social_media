@@ -59,6 +59,12 @@
   font-size: 13px;
 }
 
+.post-actions button.share-btn {
+  color: #262626;
+  font-weight: 600;
+  margin-left: auto;
+}
+
 .post-caption,
 .post-comments {
   padding: 16px;

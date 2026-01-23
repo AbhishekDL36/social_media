@@ -11,21 +11,31 @@ function Home() {
   const [loading, setLoading] = useState(false)
   const [feedLoading, setFeedLoading] = useState(true)
   const [error, setError] = useState('')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(0)
+  const [networkError, setNetworkError] = useState(false)
 
   useEffect(() => {
     fetchPosts()
   }, [])
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (pageNum = 1) => {
     try {
       setFeedLoading(true)
+      setNetworkError(false)
       const token = sessionStorage.getItem('token')
       const response = await axios.get('/api/posts', {
+        params: { page: pageNum, limit: 10 },
         headers: { Authorization: `Bearer ${token}` }
       })
-      setPosts(response.data)
+      setPosts(response.data.posts)
+      setTotalPages(response.data.pagination.pages)
+      setPage(pageNum)
     } catch (err) {
       console.error('Error fetching posts:', err)
+      if (!err.response) {
+        setNetworkError(true)
+      }
     } finally {
       setFeedLoading(false)
     }
@@ -127,19 +137,44 @@ function Home() {
       </div>
 
       <div className="feed-section">
-        <h2>Feed</h2>
-        {feedLoading ? (
-          <p className="loading">Loading feed...</p>
-        ) : posts.length === 0 ? (
-          <p className="empty-feed">No posts yet. Follow users to see their posts!</p>
-        ) : (
-          <div className="posts">
-            {posts.map((post) => (
-              <Post key={post._id} post={post} onPostUpdate={fetchPosts} />
-            ))}
-          </div>
-        )}
-      </div>
+         <h2>Feed</h2>
+         {networkError && (
+           <div className="error-box">
+             <p>⚠️ Unable to load feed. Please check your internet connection and try again.</p>
+             <button onClick={() => fetchPosts(page)}>Retry</button>
+           </div>
+         )}
+         {feedLoading ? (
+           <p className="loading">Loading feed...</p>
+         ) : posts.length === 0 ? (
+           <p className="empty-feed">No posts yet. Follow users to see their posts!</p>
+         ) : (
+           <>
+             <div className="posts">
+               {posts.map((post) => (
+                 <Post key={post._id} post={post} onPostUpdate={() => fetchPosts(page)} />
+               ))}
+             </div>
+             {totalPages > 1 && (
+               <div className="pagination">
+                 <button 
+                   onClick={() => fetchPosts(page - 1)} 
+                   disabled={page === 1}
+                 >
+                   Previous
+                 </button>
+                 <span className="page-info">Page {page} of {totalPages}</span>
+                 <button 
+                   onClick={() => fetchPosts(page + 1)} 
+                   disabled={page === totalPages}
+                 >
+                   Next
+                 </button>
+               </div>
+             )}
+           </>
+         )}
+       </div>
     </div>
   )
 }

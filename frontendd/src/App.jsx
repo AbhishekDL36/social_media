@@ -13,6 +13,7 @@ import PostDetail from './pages/PostDetail'
 import FollowersList from './pages/FollowersList'
 import Messages from './pages/Messages'
 import Navbar from './components/Navbar'
+import NetworkError from './components/NetworkError'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -27,6 +28,7 @@ function App() {
 
   return (
     <Router>
+      <NetworkError />
       {user && <Navbar />}
       <Routes>
         <Route path="/login" element={<Login setUser={setUser} />} />

@@ -84,6 +84,8 @@ function Notifications() {
                   navigate(`/profile/${notification.sender._id}`)
                 } else if (notification.type === 'message') {
                   navigate(`/messages/${notification.sender._id}`)
+                } else if (notification.type === 'share') {
+                  navigate(`/post/${notification.post}`)
                 }
               }}
             >
@@ -95,6 +97,7 @@ function Notifications() {
                    {notification.type === 'like' && (notification.message?.includes('comment') ? 'liked your comment' : 'liked your post')}
                    {notification.type === 'comment' && 'commented on your post'}
                    {notification.type === 'message' && 'sent you a message'}
+                   {notification.type === 'share' && 'shared a post with you'}
                 </p>
                 {notification.type === 'message' && (
                   <p className="notification-message">{notification.message}</p>

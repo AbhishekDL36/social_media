@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import LikersModal from './LikersModal'
+import ShareModal from './ShareModal'
 import './Post.css'
 
 function Post({ post, onPostUpdate }) {
   const [liked, setLiked] = useState(false)
   const [comment, setComment] = useState('')
   const [showLikersModal, setShowLikersModal] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
   const currentUserId = sessionStorage.getItem('userId')
 
   // Check if current user has liked this post
@@ -81,6 +83,9 @@ function Post({ post, onPostUpdate }) {
              {post.likes.length} {post.likes.length === 1 ? 'like' : 'likes'}
            </button>
          )}
+         <button onClick={() => setShowShareModal(true)} className="share-btn" title="Share post">
+           ↗️ Share
+         </button>
        </div>
       <div className="post-caption">
         <strong>{post.author?.username}</strong> {post.caption}
@@ -112,6 +117,10 @@ function Post({ post, onPostUpdate }) {
 
       {showLikersModal && (
         <LikersModal postId={post._id} onClose={() => setShowLikersModal(false)} />
+      )}
+
+      {showShareModal && (
+        <ShareModal postId={post._id} onClose={() => setShowShareModal(false)} />
       )}
       </div>
       )
