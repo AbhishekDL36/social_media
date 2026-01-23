@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import ShareStoryModal from './ShareStoryModal'
+import StoryReplyModal from './StoryReplyModal'
 import './StoryViewer.css'
 
 function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
@@ -10,23 +11,28 @@ function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
   const [likes, setLikes] = useState({})
   const [likedStories, setLikedStories] = useState({})
   const [showShareModal, setShowShareModal] = useState(false)
+  const [showReplyModal, setShowReplyModal] = useState(false)
+  const [replyCount, setReplyCount] = useState({})
   const currentUserId = sessionStorage.getItem('userId')
 
   const currentStory = storyGroup.stories[currentIndex]
   const totalStories = storyGroup.stories.length
 
-  // Initialize likes from stories
+  // Initialize likes and reply counts from stories
   useEffect(() => {
     const likesMap = {}
     const likedMap = {}
+    const replyCounts = {}
     storyGroup.stories.forEach(story => {
       likesMap[story._id] = story.likes?.length || 0
       likedMap[story._id] = story.likes?.some(like => 
         like._id === currentUserId || like === currentUserId
       ) || false
+      replyCounts[story._id] = 0 // Will be updated when reply is sent
     })
     setLikes(likesMap)
     setLikedStories(likedMap)
+    setReplyCount(replyCounts)
   }, [storyGroup, currentUserId])
 
   const handleLikeStory = async () => {
@@ -181,6 +187,20 @@ function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
         </button>
       )}
 
+      {/* Reply Button */}
+      {currentUserId !== storyGroup.user._id && (
+        <button 
+          onClick={() => setShowReplyModal(true)}
+          className="story-reply-btn"
+          title="Reply to Story"
+        >
+          <span className="reply-icon">💬</span>
+          {replyCount[currentStory._id] > 0 && (
+            <span className="reply-badge">{replyCount[currentStory._id]}</span>
+          )}
+        </button>
+      )}
+
       {/* Story count */}
       <div className="story-counter">
         {currentIndex + 1} / {totalStories}
@@ -194,6 +214,21 @@ function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
           onSuccess={() => {
             alert('Story shared successfully!')
             onRefresh()
+          }}
+        />
+      )}
+
+      {/* Reply Modal */}
+      {showReplyModal && (
+        <StoryReplyModal 
+          storyId={currentStory._id}
+          storyAuthorName={storyGroup.user.username}
+          onClose={() => setShowReplyModal(false)}
+          onReplySuccess={(reply) => {
+            setReplyCount(prev => ({
+              ...prev,
+              [currentStory._id]: (prev[currentStory._id] || 0) + 1
+            }))
           }}
         />
       )}

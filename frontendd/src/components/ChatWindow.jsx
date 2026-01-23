@@ -127,6 +127,21 @@ function ChatWindow({ user, onBack }) {
               key={msg._id}
               className={`message ${msg.sender._id === currentUserId ? 'sent' : 'received'}`}
             >
+              {msg.storyReply && (
+                <div className="story-reply-context">
+                  <img 
+                    src={msg.storyReply.storyMedia || 'https://via.placeholder.com/50'} 
+                    alt="Story" 
+                    className="story-thumbnail"
+                  />
+                  <div className="story-reply-info">
+                    <small className="story-label">📖 Reply to Story</small>
+                    {msg.storyReply.storyCaption && (
+                      <p className="story-caption">{msg.storyReply.storyCaption}</p>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="message-content">
                 <p>{msg.text}</p>
                 <button

@@ -23,6 +23,19 @@ const messageSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
+  // Story reply metadata - allows replies to be linked back to the story
+  storyReply: {
+    storyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Story'
+    },
+    storyAuthor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    storyMedia: String,
+    storyCaption: String
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -1,6 +1,7 @@
 const express = require('express');
 const Story = require('../models/Story');
 const StoryShare = require('../models/StoryShare');
+const Message = require('../models/Message');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const upload = require('../config/multer');
@@ -154,6 +155,86 @@ router.delete('/:storyId', protect, async (req, res) => {
 
     await Story.findByIdAndDelete(req.params.storyId);
     res.json({ message: 'Story deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Reply to story - sends as a direct message to story author
+router.post('/:storyId/reply', protect, async (req, res) => {
+  try {
+    const { message } = req.body;
+    const story = await Story.findById(req.params.storyId)
+      .populate('author', 'username profilePicture _id');
+
+    if (!story) {
+      return res.status(404).json({ message: 'Story not found' });
+    }
+
+    if (!message || message.trim() === '') {
+      return res.status(400).json({ message: 'Reply message cannot be empty' });
+    }
+
+    const sender = await User.findById(req.userId).select('username profilePicture');
+    if (!sender) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Don't allow replying to own story
+    if (String(story.author._id) === req.userId) {
+      return res.status(400).json({ message: 'You cannot reply to your own story' });
+    }
+
+    // Create message as story reply
+    const messageDoc = await Message.create({
+      sender: req.userId,
+      recipient: story.author._id,
+      text: message.trim(),
+      storyReply: {
+        storyId: req.params.storyId,
+        storyAuthor: story.author._id,
+        storyMedia: story.media,
+        storyCaption: story.caption
+      }
+    });
+
+    // Populate sender info
+    await messageDoc.populate('sender', 'username profilePicture');
+
+    // Create notification for story author
+    await Notification.create({
+      recipient: story.author._id,
+      sender: req.userId,
+      type: 'message',
+      message: `${sender.username} replied to your story`
+    });
+
+    res.status(201).json({
+      message: 'Reply sent successfully',
+      reply: messageDoc
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get story replies (messages with storyReply metadata)
+router.get('/:storyId/replies', protect, async (req, res) => {
+  try {
+    const story = await Story.findById(req.params.storyId);
+    
+    if (!story) {
+      return res.status(404).json({ message: 'Story not found' });
+    }
+
+    // Get all messages that are replies to this story
+    const replies = await Message.find({
+      'storyReply.storyId': req.params.storyId
+    })
+      .populate('sender', 'username profilePicture _id')
+      .sort({ createdAt: 1 });
+
+    res.json(replies);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
