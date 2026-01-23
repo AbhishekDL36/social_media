@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 import axios from 'axios'
 import App from './App.jsx'
 import './index.css'
+import './theme.css'
+import './global-theme-override.css'
 
 // Global axios error interceptor
 axios.interceptors.response.use(

@@ -1,3 +1,51 @@
+/* Light Theme (Default) */
+:root[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #fafafa;
+  --bg-tertiary: #f0f0f0;
+  --text-primary: #262626;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --border-color: #dbdbdb;
+  --border-light: #efefef;
+  --hover-bg: #f5f5f5;
+  --input-bg: #fafafa;
+  --accent-blue: #0095f6;
+  --accent-blue-hover: #0a66c2;
+  --accent-red: #ed4956;
+  --accent-red-hover: #c41e3a;
+}
+
+/* Dark Theme */
+:root[data-theme="dark"] {
+  --bg-primary: #121212;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #262626;
+  --text-primary: #f0f0f0;
+  --text-secondary: #b3b3b3;
+  --text-tertiary: #808080;
+  --border-color: #2a2a2a;
+  --border-light: #333333;
+  --hover-bg: #1f1f1f;
+  --input-bg: #262626;
+  --accent-blue: #0095f6;
+  --accent-blue-hover: #0a66c2;
+  --accent-red: #ed4956;
+  --accent-red-hover: #c41e3a;
+}
+
+* {
+  color-scheme: light dark;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
 .app {
   max-width: 935px;
   margin: 0 auto;

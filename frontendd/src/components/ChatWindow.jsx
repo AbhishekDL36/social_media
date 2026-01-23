@@ -7,8 +7,11 @@ function ChatWindow({ user, onBack }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
   const messagesEndRef = useRef(null)
+  const messagesListRef = useRef(null)
+  const initialLoadRef = useRef(true)
 
   useEffect(() => {
+    initialLoadRef.current = true
     fetchMessages()
     markNotificationsAsRead()
     // Refresh messages every 2 seconds for real-time feel
@@ -16,12 +19,22 @@ function ChatWindow({ user, onBack }) {
     return () => clearInterval(interval)
   }, [user._id])
 
+  // Only scroll on initial load or when user sends a message
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    if (initialLoadRef.current) {
+      scrollToBottom()
+      initialLoadRef.current = false
+    }
+  }, [messages.length === 0])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const scrollToBottomSmooth = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, 100)
   }
 
   const fetchMessages = async () => {
@@ -71,6 +84,8 @@ function ChatWindow({ user, onBack }) {
       )
       setMessages([...messages, response.data])
       setInput('')
+      // Scroll to bottom only when user sends a message
+      scrollToBottomSmooth()
     } catch (err) {
       console.error('Error sending message:', err)
       alert('Error sending message')

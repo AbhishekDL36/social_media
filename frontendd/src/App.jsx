@@ -17,6 +17,9 @@ import NetworkError from './components/NetworkError'
 
 function App() {
   const [user, setUser] = useState(null)
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'light'
+  })
 
   useEffect(() => {
     const token = sessionStorage.getItem('token')
@@ -26,23 +29,32 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light')
+  }
+
   return (
     <Router>
       <NetworkError />
-      {user && <Navbar />}
+      {user && <Navbar theme={theme} toggleTheme={toggleTheme} />}
       <Routes>
-        <Route path="/login" element={<Login setUser={setUser} />} />
-        <Route path="/register" element={<Register setUser={setUser} />} />
-        <Route path="/" element={user ? <Home /> : <Login setUser={setUser} />} />
-        <Route path="/profile/:id" element={user ? <Profile /> : <Login setUser={setUser} />} />
-        <Route path="/search" element={user ? <Search /> : <Login setUser={setUser} />} />
-        <Route path="/notifications" element={user ? <Notifications /> : <Login setUser={setUser} />} />
-        <Route path="/follow-requests" element={user ? <FollowRequests /> : <Login setUser={setUser} />} />
-        <Route path="/settings" element={user ? <Settings /> : <Login setUser={setUser} />} />
-        <Route path="/post/:postId" element={user ? <PostDetail /> : <Login setUser={setUser} />} />
-        <Route path="/followers/:userId/:type" element={user ? <FollowersList /> : <Login setUser={setUser} />} />
-        <Route path="/messages" element={user ? <Messages /> : <Login setUser={setUser} />} />
-        <Route path="/messages/:userId" element={user ? <Messages /> : <Login setUser={setUser} />} />
+         <Route path="/login" element={<Login setUser={setUser} />} />
+         <Route path="/register" element={<Register setUser={setUser} />} />
+         <Route path="/" element={user ? <Home /> : <Login setUser={setUser} />} />
+         <Route path="/profile/:id" element={user ? <Profile /> : <Login setUser={setUser} />} />
+         <Route path="/search" element={user ? <Search /> : <Login setUser={setUser} />} />
+         <Route path="/notifications" element={user ? <Notifications /> : <Login setUser={setUser} />} />
+         <Route path="/follow-requests" element={user ? <FollowRequests /> : <Login setUser={setUser} />} />
+         <Route path="/settings" element={user ? <Settings theme={theme} toggleTheme={toggleTheme} /> : <Login setUser={setUser} />} />
+         <Route path="/post/:postId" element={user ? <PostDetail /> : <Login setUser={setUser} />} />
+         <Route path="/followers/:userId/:type" element={user ? <FollowersList /> : <Login setUser={setUser} />} />
+         <Route path="/messages" element={user ? <Messages /> : <Login setUser={setUser} />} />
+         <Route path="/messages/:userId" element={user ? <Messages /> : <Login setUser={setUser} />} />
         </Routes>
     </Router>
   )

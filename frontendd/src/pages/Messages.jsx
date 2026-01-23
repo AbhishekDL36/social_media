@@ -108,26 +108,27 @@ function Messages() {
 
       <div className="messages-tabs">
          <button
-           className={`tab ${view === 'chats' ? 'active' : ''}`}
-           onClick={() => setView('chats')}
-         >
-           Chats
-         </button>
-         <button
-           className={`tab ${view === 'requests' ? 'active' : ''}`}
-           onClick={() => setView('requests')}
-         >
-           Requests
-         </button>
-         <button
-           className={`tab ${view === 'shared' ? 'active' : ''}`}
-           onClick={() => setView('shared')}
-         >
-           📤 Shared ({selectedUser ? sharedPosts.length : 0})
-         </button>
+            className={`tab ${view === 'chats' ? 'active' : ''}`}
+            onClick={() => setView('chats')}
+          >
+            Chats
+          </button>
+          <button
+            className={`tab ${view === 'requests' ? 'active' : ''}`}
+            onClick={() => setView('requests')}
+          >
+            Requests
+          </button>
+          <button
+            className={`tab ${view === 'shared' ? 'active' : ''}`}
+            onClick={() => setView('shared')}
+          >
+            📤 Shared ({selectedUser ? sharedPosts.length : 0})
+          </button>
        </div>
 
-      <div className="messages-content">
+       <div className="messages-wrapper">
+       <div className="messages-content">
         {view === 'shared' ? (
           // Shared view - show users I've shared with
           <>
@@ -230,6 +231,7 @@ function Messages() {
       {selectedUser && (
         <ChatWindow user={selectedUser} onBack={() => setSelectedUser(null)} />
       )}
+       </div>
     </div>
   )
 }

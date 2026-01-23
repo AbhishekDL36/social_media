@@ -1,0 +1,242 @@
+/* Global theme styles for dark mode support */
+
+/* Ensure proper contrast */
+body {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Cards and containers */
+.settings-container,
+.settings-sidebar,
+.settings-content,
+.profile,
+.messages-container,
+.home,
+.search-container,
+.notifications-container,
+.auth-container,
+.auth-box,
+.navbar {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary) !important;
+}
+
+/* Paragraphs and text */
+p, span, label, a, li, div {
+  color: var(--text-primary);
+}
+
+a {
+  color: var(--accent-blue);
+}
+
+a:hover {
+  color: var(--accent-blue-hover);
+}
+
+/* Input fields */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea,
+select {
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent-blue) !important;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Placeholder text */
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
+/* Buttons */
+button {
+  color: var(--text-primary);
+}
+
+/* Messages and alerts */
+.message {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.message.success {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+  border-color: #28a745;
+}
+
+.message.error {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.error-message {
+  color: #dc3545 !important;
+}
+
+/* Settings elements */
+.settings-sidebar,
+.settings-content,
+.setting-item,
+.blocked-user-item,
+.conversation-item {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.settings-sidebar li {
+  color: var(--text-primary);
+}
+
+.settings-sidebar li:hover {
+  color: var(--accent-blue);
+  background-color: var(--hover-bg);
+}
+
+.settings-sidebar li.active {
+  color: var(--accent-blue);
+}
+
+.setting-info h4,
+.blocked-user-info h4 {
+  color: var(--text-primary) !important;
+}
+
+.setting-info p,
+.blocked-user-info p,
+.profile-info p {
+  color: var(--text-secondary) !important;
+}
+
+/* Settings info box */
+.settings-info {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.settings-info h4 {
+  color: var(--text-primary) !important;
+}
+
+.settings-info li {
+  color: var(--text-secondary);
+}
+
+/* Profile elements */
+.profile-header {
+  border-color: var(--border-color);
+}
+
+.private-badge {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+
+.stats div {
+  color: var(--text-primary);
+}
+
+/* Forms */
+.auth-box h1 {
+  color: var(--text-primary) !important;
+}
+
+.auth-box p {
+  color: var(--text-secondary);
+}
+
+/* Feed and posts */
+.posts,
+.feed-section {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.empty-feed,
+.no-posts,
+.no-conversations,
+.no-blocked {
+  color: var(--text-tertiary) !important;
+}
+
+/* Cards with borders */
+.post-item,
+.notification-item {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+/* Tabs and filters */
+.filter-tab,
+.tab {
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+
+.filter-tab.active,
+.tab.active {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+/* Navbar */
+.navbar {
+  border-color: var(--border-color);
+}
+
+.navbar h1,
+.navbar a,
+.navbar span {
+  color: var(--text-primary) !important;
+}
+
+/* Modals and overlays */
+.modal,
+.modal-content {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Links and interactive elements */
+.conversation-item:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Character counter */
+.char-count {
+  color: var(--text-tertiary) !important;
+}
+
+/* Unread badge */
+.unread-badge {
+  background-color: var(--accent-red);
+  color: white;
+}

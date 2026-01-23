@@ -1,0 +1,228 @@
+/* Global dark theme overrides for all hardcoded colors */
+/* This file catches any CSS rules that weren't updated with theme variables */
+
+:root[data-theme="dark"] {
+  --light-bg: var(--bg-primary) !important;
+  --dark-text: var(--text-primary) !important;
+  --gray-text: var(--text-secondary) !important;
+  --light-gray-text: var(--text-tertiary) !important;
+  --border: var(--border-color) !important;
+  --light-border: var(--border-light) !important;
+  --white: var(--bg-primary) !important;
+  --light-white: var(--bg-secondary) !important;
+  --dark-gray: var(--text-primary) !important;
+  --light-gray: var(--text-secondary) !important;
+  --very-light-gray: var(--text-tertiary) !important;
+}
+
+/* Fix all white containers */
+:root[data-theme="dark"] .auth-box,
+:root[data-theme="dark"] .auth-container,
+:root[data-theme="dark"] .profile,
+:root[data-theme="dark"] .home,
+:root[data-theme="dark"] .messages-container,
+:root[data-theme="dark"] .search-container,
+:root[data-theme="dark"] .follow-requests-container,
+:root[data-theme="dark"] .notifications-container,
+:root[data-theme="dark"] .follow-followers-container,
+:root[data-theme="dark"] .followers-list,
+:root[data-theme="dark"] .settings-container,
+:root[data-theme="dark"] .post-detail-container {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Fix all white cards and boxes */
+:root[data-theme="dark"] .auth-box,
+:root[data-theme="dark"] .create-post,
+:root[data-theme="dark"] .post-card,
+:root[data-theme="dark"] .user-card,
+:root[data-theme="dark"] .settings-content,
+:root[data-theme="dark"] .requests-list,
+:root[data-theme="dark"] .notifications-list {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+/* Fix all hardcoded text colors */
+:root[data-theme="dark"] h1,
+:root[data-theme="dark"] h2,
+:root[data-theme="dark"] h3,
+:root[data-theme="dark"] h4,
+:root[data-theme="dark"] h5,
+:root[data-theme="dark"] h6,
+:root[data-theme="dark"] p,
+:root[data-theme="dark"] span,
+:root[data-theme="dark"] label,
+:root[data-theme="dark"] li,
+:root[data-theme="dark"] a {
+  color: var(--text-primary);
+}
+
+/* Fix all gray text */
+:root[data-theme="dark"] .bio,
+:root[data-theme="dark"] .followers,
+:root[data-theme="dark"] .caption,
+:root[data-theme="dark"] .timestamp,
+:root[data-theme="dark"] .secondary-text {
+  color: var(--text-secondary);
+}
+
+/* Fix light gray/muted text */
+:root[data-theme="dark"] .muted,
+:root[data-theme="dark"] .hint-text,
+:root[data-theme="dark"] .empty-state {
+  color: var(--text-tertiary);
+}
+
+/* Fix input styling */
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] select {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+/* Fix borders */
+:root[data-theme="dark"] .border-bottom {
+  border-bottom-color: var(--border-light);
+}
+
+:root[data-theme="dark"] .border-top {
+  border-top-color: var(--border-light);
+}
+
+:root[data-theme="dark"] .border {
+  border-color: var(--border-color);
+}
+
+/* Fix buttons */
+:root[data-theme="dark"] button {
+  color: var(--text-primary);
+}
+
+/* Fix modals and overlays */
+:root[data-theme="dark"] .modal,
+:root[data-theme="dark"] .modal-content,
+:root[data-theme="dark"] .dropdown,
+:root[data-theme="dark"] .tooltip {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+/* Fix specific common classes */
+:root[data-theme="dark"] .container,
+:root[data-theme="dark"] .card,
+:root[data-theme="dark"] .section,
+:root[data-theme="dark"] .panel {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+/* Fix image placeholders and fallbacks */
+:root[data-theme="dark"] img {
+  background-color: var(--bg-tertiary);
+}
+
+/* Fix scrollbar in dark mode */
+:root[data-theme="dark"] ::-webkit-scrollbar {
+  width: 8px;
+}
+
+:root[data-theme="dark"] ::-webkit-scrollbar-track {
+  background-color: var(--bg-secondary);
+}
+
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-light);
+}
+
+/* AGGRESSIVE OVERRIDES for any missed hardcoded colors */
+:root[data-theme="dark"] * {
+  background-color: unset;
+  color: unset;
+}
+
+/* All text must be light in dark mode */
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] div,
+:root[data-theme="dark"] p,
+:root[data-theme="dark"] span,
+:root[data-theme="dark"] h1,
+:root[data-theme="dark"] h2,
+:root[data-theme="dark"] h3,
+:root[data-theme="dark"] h4,
+:root[data-theme="dark"] h5,
+:root[data-theme="dark"] h6,
+:root[data-theme="dark"] li,
+:root[data-theme="dark"] label,
+:root[data-theme="dark"] a,
+:root[data-theme="dark"] button {
+  color: var(--text-primary) !important;
+}
+
+/* Hardcoded white colors to primary bg */
+:root[data-theme="dark"] * {
+  background-color: unset;
+}
+
+:root[data-theme="dark"] [style*="background-color: #fff"],
+:root[data-theme="dark"] [style*="background-color:#fff"],
+:root[data-theme="dark"] [style*="background: #fff"],
+:root[data-theme="dark"] [style*="background:#fff"] {
+  background-color: var(--bg-primary) !important;
+}
+
+/* All gray text (#666, #999, etc.) becomes secondary text */
+:root[data-theme="dark"] [style*="color: #666"],
+:root[data-theme="dark"] [style*="color:#666"],
+:root[data-theme="dark"] [style*="color: #999"],
+:root[data-theme="dark"] [style*="color:#999"] {
+  color: var(--text-secondary) !important;
+}
+
+/* All dark text (#262626) becomes primary text */
+:root[data-theme="dark"] [style*="color: #262626"],
+:root[data-theme="dark"] [style*="color:#262626"] {
+  color: var(--text-primary) !important;
+}
+
+/* Fix border colors */
+:root[data-theme="dark"] [style*="border-color: #dbdbdb"],
+:root[data-theme="dark"] [style*="border-color:#dbdbdb"] {
+  border-color: var(--border-color) !important;
+}
+
+/* CSS class overrides */
+:root[data-theme="dark"] .bg-white,
+:root[data-theme="dark"] .background-white,
+:root[data-theme="dark"] .white-bg {
+  background-color: var(--bg-primary) !important;
+}
+
+:root[data-theme="dark"] .text-dark,
+:root[data-theme="dark"] .dark-text,
+:root[data-theme="dark"] .text-262626 {
+  color: var(--text-primary) !important;
+}
+
+:root[data-theme="dark"] .text-gray,
+:root[data-theme="dark"] .gray-text,
+:root[data-theme="dark"] .text-666 {
+  color: var(--text-secondary) !important;
+}
+
+:root[data-theme="dark"] .text-light-gray,
+:root[data-theme="dark"] .light-gray-text,
+:root[data-theme="dark"] .text-999 {
+  color: var(--text-tertiary) !important;
+}

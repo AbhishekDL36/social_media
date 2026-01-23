@@ -1,10 +1,11 @@
 .navbar {
-  background-color: #fff;
-  border-bottom: 1px solid #dbdbdb;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
   padding: 16px 0;
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .navbar-container {
@@ -20,6 +21,12 @@
   font-family: 'Billabong', cursive;
   font-size: 28px;
   cursor: pointer;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+.logo:hover {
+  color: var(--accent-blue);
 }
 
 .nav-links {
@@ -31,7 +38,7 @@
 .nav-link {
   background: none;
   border: none;
-  color: #262626;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -40,7 +47,12 @@
 }
 
 .nav-link:hover {
-  color: #0095f6;
+  color: var(--accent-blue);
+}
+
+.theme-toggle-btn {
+  font-size: 18px;
+  padding: 0 8px;
 }
 
 .notifications-link {

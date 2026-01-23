@@ -4,13 +4,29 @@
   box-sizing: border-box;
 }
 
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #fafafa;
+  background-color: var(--bg-secondary, #fafafa);
+  color: var(--text-primary, #262626);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+input, textarea, select {
+  background-color: var(--input-bg, #fafafa);
+  color: var(--text-primary, #262626);
+  border-color: var(--border-color, #dbdbdb);
+}
+
+button {
+  transition: all 0.2s ease;
 }
 
 code {

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './Navbar.css'
 
-function Navbar() {
+function Navbar({ toggleTheme, theme }) {
   const navigate = useNavigate()
   const userId = sessionStorage.getItem('userId')
   const [unreadCount, setUnreadCount] = useState(0)
@@ -76,6 +76,9 @@ function Navbar() {
             {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
           </button>
           <button onClick={() => navigate(`/profile/${userId}`)} className="nav-link">My Profile</button>
+          <button onClick={toggleTheme} className="nav-link theme-toggle-btn" title="Toggle Dark Mode">
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
           <button onClick={() => navigate('/settings')} className="nav-link settings-link">⚙️</button>
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>

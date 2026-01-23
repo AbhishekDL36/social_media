@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './Settings.css'
 
-function Settings() {
+function Settings({ theme, toggleTheme }) {
   const [user, setUser] = useState(null)
   const [isPrivate, setIsPrivate] = useState(false)
   const [blockedUsers, setBlockedUsers] = useState([])
@@ -150,11 +150,14 @@ function Settings() {
           >
             <span>🚫</span> Blocked Users
           </li>
-          <li style={{ opacity: 0.5 }}>
-            <span>🔔</span> Notifications
+          <li 
+            className={activeTab === 'appearance' ? 'active' : ''}
+            onClick={() => setActiveTab('appearance')}
+          >
+            <span>🌙</span> Appearance
           </li>
           <li style={{ opacity: 0.5 }}>
-            <span>🌙</span> Appearance
+            <span>🔔</span> Notifications
           </li>
         </ul>
       </div>
@@ -244,6 +247,32 @@ function Settings() {
             <li>👥 Your current followers can still see your posts</li>
             <li>🔄 You can always change this back to public</li>
           </ul>
+        </div>
+        </>
+        )}
+
+        {activeTab === 'appearance' && (
+        <>
+        <h2>Appearance</h2>
+        <div className="settings-section">
+          <div className="setting-item">
+            <div className="setting-info">
+              <h4>Dark Mode</h4>
+              <p>
+                {theme === 'dark' 
+                  ? '🌙 Dark theme is enabled. Easy on the eyes.' 
+                  : '☀️ Light theme is enabled. Clear and bright.'}
+              </p>
+            </div>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={theme === 'dark'}
+                onChange={toggleTheme}
+              />
+              <span className="slider"></span>
+            </label>
+          </div>
         </div>
         </>
         )}
