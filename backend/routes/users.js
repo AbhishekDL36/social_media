@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const Block = require('../models/Block');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -115,6 +116,99 @@ router.put('/:id/follow', protect, async (req, res) => {
       message: 'User has a private account. Send follow request instead.',
       isPrivate: true 
     });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Block user
+router.post('/:id/block', protect, async (req, res) => {
+  try {
+    const userToBlock = await User.findById(req.params.id);
+    if (!userToBlock) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (req.userId === req.params.id) {
+      return res.status(400).json({ message: 'You cannot block yourself' });
+    }
+
+    // Check if already blocked
+    const existingBlock = await Block.findOne({ 
+      blocker: req.userId, 
+      blocked: req.params.id 
+    });
+
+    if (existingBlock) {
+      return res.status(400).json({ message: 'User already blocked' });
+    }
+
+    // Create block
+    await Block.create({
+      blocker: req.userId,
+      blocked: req.params.id
+    });
+
+    // Unfollow if following
+    const currentUser = await User.findById(req.userId);
+    if (currentUser.following.includes(req.params.id)) {
+      currentUser.following = currentUser.following.filter(id => id.toString() !== req.params.id);
+      userToBlock.followers = userToBlock.followers.filter(id => id.toString() !== req.userId);
+      await currentUser.save();
+      await userToBlock.save();
+    }
+
+    res.json({ message: 'User blocked successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Unblock user
+router.post('/:id/unblock', protect, async (req, res) => {
+  try {
+    const userToUnblock = await User.findById(req.params.id);
+    if (!userToUnblock) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const block = await Block.findOneAndDelete({
+      blocker: req.userId,
+      blocked: req.params.id
+    });
+
+    if (!block) {
+      return res.status(404).json({ message: 'This user is not blocked' });
+    }
+
+    res.json({ message: 'User unblocked successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get blocked users list
+router.get('/blocked/list', protect, async (req, res) => {
+  try {
+    const blocks = await Block.find({ blocker: req.userId })
+      .populate('blocked', 'username profilePicture bio');
+
+    const blockedUsers = blocks.map(block => block.blocked);
+    res.json(blockedUsers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Check if user is blocked
+router.get('/:id/is-blocked', protect, async (req, res) => {
+  try {
+    const block = await Block.findOne({
+      blocker: req.userId,
+      blocked: req.params.id
+    });
+
+    res.json({ isBlocked: !!block });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

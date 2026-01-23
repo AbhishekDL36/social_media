@@ -7,7 +7,7 @@ const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Share post with a user
+// Share post with a user (like sending a message - can be repeated)
 router.post('/', protect, async (req, res) => {
   try {
     const { postId, userId, message } = req.body;
@@ -30,17 +30,7 @@ router.post('/', protect, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if already shared
-    const existingShare = await Share.findOne({
-      post: postId,
-      sharedBy: req.userId,
-      sharedWith: userId
-    });
-
-    if (existingShare) {
-      return res.status(400).json({ message: 'Already shared with this user' });
-    }
-
+    // Create new share (allow multiple shares of same post to same user, like messages)
     const share = new Share({
       post: postId,
       sharedBy: req.userId,
@@ -71,16 +61,65 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
-// Get shared posts for current user
+// Get shared posts - can filter by sharedWith user
 router.get('/', protect, async (req, res) => {
   try {
-    const shares = await Share.find({ sharedWith: req.userId })
+    const { userId } = req.query;
+    
+    let query;
+    if (userId) {
+      // Get posts shared BETWEEN current user and specific userId (both sent and received)
+      query = Share.find({
+        $or: [
+          { sharedBy: req.userId, sharedWith: userId },
+          { sharedBy: userId, sharedWith: req.userId }
+        ]
+      });
+    } else {
+      // Get posts shared WITH current user (received)
+      query = Share.find({ sharedWith: req.userId });
+    }
+
+    const shares = await query
       .sort({ createdAt: -1 })
       .populate('post')
       .populate('sharedBy', 'username profilePicture')
       .populate('sharedWith', 'username profilePicture');
 
     res.json(shares);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get list of users current user has shared posts with
+router.get('/shared-with/list', protect, async (req, res) => {
+  try {
+    const shares = await Share.find({ sharedBy: req.userId })
+      .populate('sharedWith', 'username profilePicture')
+      .select('sharedWith createdAt')
+      .sort({ createdAt: -1 });
+
+    // Get unique users and latest share time
+    const userMap = new Map();
+    shares.forEach(share => {
+      const userId = share.sharedWith._id.toString();
+      if (!userMap.has(userId)) {
+        userMap.set(userId, {
+          user: share.sharedWith,
+          lastSharedAt: share.createdAt,
+          count: 1
+        });
+      } else {
+        userMap.get(userId).count += 1;
+      }
+    });
+
+    const users = Array.from(userMap.values()).sort(
+      (a, b) => new Date(b.lastSharedAt) - new Date(a.lastSharedAt)
+    );
+
+    res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

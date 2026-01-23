@@ -10,6 +10,7 @@ function Profile() {
   const [user, setUser] = useState(null)
   const [posts, setPosts] = useState([])
   const [isFollowing, setIsFollowing] = useState(false)
+  const [isBlocked, setIsBlocked] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [requestSent, setRequestSent] = useState(false)
@@ -45,13 +46,19 @@ function Profile() {
       const response = await axios.get(`/api/users/${id}`)
       setUser(response.data)
       
-      // Check if current user is following this user
+      // Check if current user is following this user and if blocked
       if (!isOwnProfile && currentUserId) {
         const token = sessionStorage.getItem('token')
         const currentUserRes = await axios.get(`/api/users/${currentUserId}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         setIsFollowing(currentUserRes.data.following.some(followId => followId === id))
+        
+        // Check if blocked
+        const blockRes = await axios.get(`/api/users/${id}/is-blocked`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        setIsBlocked(blockRes.data.isBlocked)
       }
       
       setLoading(false)
@@ -105,6 +112,36 @@ function Profile() {
     }
   }
 
+  const handleBlock = async () => {
+    try {
+      setError('')
+      const token = sessionStorage.getItem('token')
+      await axios.post(
+        `/api/users/${id}/block`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setIsBlocked(true)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error blocking user')
+    }
+  }
+
+  const handleUnblock = async () => {
+    try {
+      setError('')
+      const token = sessionStorage.getItem('token')
+      await axios.post(
+        `/api/users/${id}/unblock`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setIsBlocked(false)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error unblocking user')
+    }
+  }
+
   if (loading) return <div>Loading...</div>
   if (!user) return <div>User not found</div>
 
@@ -135,20 +172,31 @@ function Profile() {
         </div>
         {!isOwnProfile && (
           <div className="profile-actions">
-            {user.isPrivate && !isFollowing && !requestSent ? (
-              <button onClick={handleSendFollowRequest} className="request-btn">
-                Send Request
+            {isBlocked ? (
+              <button onClick={handleUnblock} className="unblock-btn">
+                Unblock
               </button>
-            ) : user.isPrivate && requestSent ? (
-              <div className="request-sent">Request Sent</div>
             ) : (
-              <button onClick={handleFollow} className="follow-btn">
-                {isFollowing ? 'Following' : 'Follow'}
-              </button>
+              <>
+                {user.isPrivate && !isFollowing && !requestSent ? (
+                  <button onClick={handleSendFollowRequest} className="request-btn">
+                    Send Request
+                  </button>
+                ) : user.isPrivate && requestSent ? (
+                  <div className="request-sent">Request Sent</div>
+                ) : (
+                  <button onClick={handleFollow} className="follow-btn">
+                    {isFollowing ? 'Following' : 'Follow'}
+                  </button>
+                )}
+                <button onClick={() => navigate(`/messages?user=${id}`)} className="message-btn">
+                  Message
+                </button>
+                <button onClick={handleBlock} className="block-btn">
+                  Block
+                </button>
+              </>
             )}
-            <button onClick={() => navigate(`/messages?user=${id}`)} className="message-btn">
-              Message
-            </button>
           </div>
         )}
       </div>

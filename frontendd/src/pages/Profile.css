@@ -64,7 +64,8 @@
 
 .follow-btn,
 .request-btn,
-.message-btn {
+.message-btn,
+.block-btn {
   background-color: #0095f6;
   color: white;
   padding: 10px 30px;
@@ -77,7 +78,8 @@
 
 .follow-btn:hover,
 .request-btn:hover,
-.message-btn:hover {
+.message-btn:hover,
+.block-btn:hover {
   background-color: #0a66c2;
 }
 
@@ -86,6 +88,29 @@
 }
 
 .message-btn:hover {
+  background-color: #404040;
+}
+
+.block-btn {
+  background-color: #ed4956;
+}
+
+.block-btn:hover {
+  background-color: #c41e3a;
+}
+
+.unblock-btn {
+  background-color: #262626;
+  color: white;
+  padding: 10px 30px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.unblock-btn:hover {
   background-color: #404040;
 }
 

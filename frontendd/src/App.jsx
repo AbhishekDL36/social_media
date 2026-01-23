@@ -43,7 +43,7 @@ function App() {
         <Route path="/followers/:userId/:type" element={user ? <FollowersList /> : <Login setUser={setUser} />} />
         <Route path="/messages" element={user ? <Messages /> : <Login setUser={setUser} />} />
         <Route path="/messages/:userId" element={user ? <Messages /> : <Login setUser={setUser} />} />
-      </Routes>
+        </Routes>
     </Router>
   )
 }
