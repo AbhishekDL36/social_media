@@ -52,7 +52,7 @@ function Profile() {
         const currentUserRes = await axios.get(`/api/users/${currentUserId}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
-        setIsFollowing(currentUserRes.data.following.some(followId => followId === id))
+        setIsFollowing(currentUserRes.data.following.some(followId => followId._id === id || followId === id))
         
         // Check if blocked
         const blockRes = await axios.get(`/api/users/${id}/is-blocked`, {
@@ -79,16 +79,24 @@ function Profile() {
 
   const handleFollow = async () => {
     try {
+      console.log('Follow button clicked', { id, isFollowing })
       setError('')
       const token = sessionStorage.getItem('token')
+      console.log('Token:', token ? 'exists' : 'missing')
       const response = await axios.put(
         `/api/users/${id}/follow`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      setIsFollowing(!isFollowing)
-      fetchUserProfile()
+      console.log('Follow response:', response.data)
+      // Immediately update the UI with the new state
+      const newFollowingState = !isFollowing
+      setIsFollowing(newFollowingState)
+      console.log('Updated isFollowing to:', newFollowingState)
+      // Then fetch fresh data from server
+      await fetchUserProfile()
     } catch (err) {
+      console.error('Follow error:', err.response?.status, err.response?.data)
       if (err.response?.data?.isPrivate) {
         setError(err.response.data.message)
       } else {

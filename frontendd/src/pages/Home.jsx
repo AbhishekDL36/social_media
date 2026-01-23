@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './Home.css'
 import Post from '../components/Post'
+import Stories from '../components/Stories'
+import StoryUploader from '../components/StoryUploader'
 
 function Home() {
   const [posts, setPosts] = useState([])
@@ -87,8 +89,15 @@ function Home() {
     setLoading(false)
   }
 
+  const handleStoryAdded = () => {
+    fetchPosts()
+  }
+
   return (
     <div className="home">
+      <Stories />
+      <StoryUploader onStoryAdded={handleStoryAdded} />
+      
       <div className="create-post">
         <h2>Create a Post</h2>
         <form onSubmit={handleCreatePost}>

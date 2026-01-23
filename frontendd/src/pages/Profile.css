@@ -2,6 +2,8 @@
   max-width: 935px;
   margin: 0 auto;
   padding: 20px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .profile-header {
@@ -9,7 +11,7 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 30px 0;
-  border-bottom: 1px solid #dbdbdb;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .username-section {
@@ -24,17 +26,17 @@
 }
 
 .private-badge {
-  background-color: #f0f0f0;
+  background-color: var(--bg-tertiary);
   padding: 5px 10px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
-  color: #262626;
+  color: var(--text-primary);
 }
 
 .profile-info p {
   margin: 10px 0;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .stats {
@@ -60,13 +62,15 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  position: relative;
+  z-index: 10;
 }
 
 .follow-btn,
 .request-btn,
 .message-btn,
 .block-btn {
-  background-color: #0095f6;
+  background-color: var(--accent-blue);
   color: white;
   padding: 10px 30px;
   border: none;
@@ -74,34 +78,36 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  pointer-events: auto;
 }
 
 .follow-btn:hover,
 .request-btn:hover,
 .message-btn:hover,
 .block-btn:hover {
-  background-color: #0a66c2;
+  background-color: var(--accent-blue-hover);
 }
 
 .message-btn {
-  background-color: #262626;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .message-btn:hover {
-  background-color: #404040;
+  background-color: var(--hover-bg);
 }
 
 .block-btn {
-  background-color: #ed4956;
+  background-color: var(--accent-red);
 }
 
 .block-btn:hover {
-  background-color: #c41e3a;
+  background-color: var(--accent-red-hover);
 }
 
 .unblock-btn {
-  background-color: #262626;
-  color: white;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
   padding: 10px 30px;
   border: none;
   border-radius: 4px;
@@ -111,15 +117,16 @@
 }
 
 .unblock-btn:hover {
-  background-color: #404040;
+  background-color: var(--hover-bg);
 }
 
 .request-sent {
-  background-color: #e0e0e0;
-  color: #262626;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
   padding: 10px 30px;
   border-radius: 4px;
   font-weight: 600;
+  border: 1px solid var(--border-color);
 }
 
 .privacy-toggle-btn {

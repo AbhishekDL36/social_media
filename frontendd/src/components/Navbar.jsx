@@ -2,12 +2,14 @@ import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './Navbar.css'
+import StoryUploader from './StoryUploader'
 
 function Navbar({ toggleTheme, theme }) {
   const navigate = useNavigate()
   const userId = sessionStorage.getItem('userId')
   const [unreadCount, setUnreadCount] = useState(0)
   const [unreadMessages, setUnreadMessages] = useState(0)
+  const [showStoryUploader, setShowStoryUploader] = useState(false)
 
   useEffect(() => {
     fetchUnreadCount()
@@ -76,6 +78,16 @@ function Navbar({ toggleTheme, theme }) {
             {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
           </button>
           <button onClick={() => navigate(`/profile/${userId}`)} className="nav-link">My Profile</button>
+          <button 
+            onClick={() => {
+              console.log('Story button clicked')
+              setShowStoryUploader(true)
+            }} 
+            className="nav-link story-btn" 
+            title="Add Story"
+          >
+            📖
+          </button>
           <button onClick={toggleTheme} className="nav-link theme-toggle-btn" title="Toggle Dark Mode">
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
@@ -83,6 +95,17 @@ function Navbar({ toggleTheme, theme }) {
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>
       </div>
+
+      {showStoryUploader && (
+        <StoryUploader 
+          isOpen={showStoryUploader}
+          setIsOpen={setShowStoryUploader}
+          onStoryAdded={() => {
+            setShowStoryUploader(false)
+          }}
+          onClose={() => setShowStoryUploader(false)}
+        />
+      )}
     </nav>
   )
 }
