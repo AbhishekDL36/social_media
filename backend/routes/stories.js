@@ -1,5 +1,6 @@
 const express = require('express');
 const Story = require('../models/Story');
+const StoryShare = require('../models/StoryShare');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const upload = require('../config/multer');
@@ -66,6 +67,20 @@ router.get('/feed', protect, async (req, res) => {
     });
 
     res.json(Object.values(groupedStories));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get shared stories (received) - MUST come before /:storyId route
+router.get('/received/shares', protect, async (req, res) => {
+  try {
+    const shares = await StoryShare.find({ sharedWith: req.userId })
+      .populate('story')
+      .populate('sharedBy', 'username profilePicture')
+      .sort({ createdAt: -1 });
+
+    res.json(shares);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -222,6 +237,88 @@ router.get('/:storyId/viewers', protect, async (req, res) => {
         user: v.userId,
         viewedAt: v.viewedAt
       }))
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Share story with friends
+router.post('/:storyId/share', protect, async (req, res) => {
+  try {
+    const { friendIds, message } = req.body;
+    const story = await Story.findById(req.params.storyId).populate('author', 'isPrivate');
+
+    if (!story) {
+      return res.status(404).json({ message: 'Story not found' });
+    }
+
+    // Get current user info
+    const currentUser = await User.findById(req.userId);
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if current user can share (must be following or own story)
+    const storyAuthor = await User.findById(story.author._id);
+    const canShare = String(story.author._id) === req.userId || 
+                     currentUser.following.includes(story.author._id);
+
+    if (!canShare) {
+      return res.status(403).json({ message: 'You can only share stories from users you follow' });
+    }
+
+    // Validate friends
+    if (!Array.isArray(friendIds) || friendIds.length === 0) {
+      return res.status(400).json({ message: 'Please select at least one friend' });
+    }
+
+    // Share with each friend
+    const shares = [];
+    for (const friendId of friendIds) {
+      // Check if story author is public or friend is a mutual friend
+      if (storyAuthor.isPrivate) {
+        // For private accounts, only mutual followers can receive shares
+        const isMutualFollower = storyAuthor.followers.includes(friendId) && 
+                                currentUser.following.includes(friendId);
+        if (!isMutualFollower) {
+          continue; // Skip this friend
+        }
+      }
+
+      const existingShare = await StoryShare.findOne({
+        story: req.params.storyId,
+        sharedBy: req.userId,
+        sharedWith: friendId
+      });
+
+      if (!existingShare) {
+        const share = await StoryShare.create({
+          story: req.params.storyId,
+          sharedBy: req.userId,
+          sharedWith: friendId,
+          message
+        });
+        shares.push(share);
+
+        // Create notification for receiving user
+        const shareMessage = message 
+          ? `${currentUser.username} shared a story: "${message}"`
+          : `${currentUser.username} shared a story with you`;
+        
+        await Notification.create({
+          recipient: friendId,
+          sender: req.userId,
+          type: 'story_share',
+          message: shareMessage,
+          reference: req.params.storyId
+        });
+      }
+    }
+
+    res.status(201).json({
+      message: `Story shared with ${shares.length} friend(s)`,
+      shares
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

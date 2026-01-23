@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import ShareStoryModal from './ShareStoryModal'
 import './StoryViewer.css'
 
 function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
@@ -8,6 +9,7 @@ function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
   const [paused, setPaused] = useState(false)
   const [likes, setLikes] = useState({})
   const [likedStories, setLikedStories] = useState({})
+  const [showShareModal, setShowShareModal] = useState(false)
   const currentUserId = sessionStorage.getItem('userId')
 
   const currentStory = storyGroup.stories[currentIndex]
@@ -168,10 +170,33 @@ function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
         <span className="like-count">{likes[currentStory._id] || 0}</span>
       </button>
 
+      {/* Share Button */}
+      {currentUserId !== storyGroup.user._id && (
+        <button 
+          onClick={() => setShowShareModal(true)}
+          className="story-share-btn"
+          title="Share Story"
+        >
+          <span className="share-icon">📤</span>
+        </button>
+      )}
+
       {/* Story count */}
       <div className="story-counter">
         {currentIndex + 1} / {totalStories}
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <ShareStoryModal 
+          storyId={currentStory._id}
+          onClose={() => setShowShareModal(false)}
+          onSuccess={() => {
+            alert('Story shared successfully!')
+            onRefresh()
+          }}
+        />
+      )}
     </div>
   )
 }

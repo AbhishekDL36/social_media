@@ -202,6 +202,35 @@
   min-width: 20px;
 }
 
+.story-share-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 120px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
+}
+
+.story-share-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.05);
+}
+
+.share-icon {
+  font-size: 18px;
+  display: inline-block;
+}
+
 .story-counter {
   position: absolute;
   bottom: 20px;
