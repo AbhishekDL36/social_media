@@ -2,6 +2,7 @@ const express = require('express');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Block = require('../models/Block');
+const upload = require('../config/multer');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -37,6 +38,44 @@ router.get('/:id', async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Update profile (bio and profile picture)
+router.put('/me/profile', protect, upload.single('profilePicture'), async (req, res) => {
+  try {
+    const { bio } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update bio if provided
+    if (bio !== undefined) {
+      user.bio = bio;
+    }
+
+    // Update profile picture if file is uploaded
+    if (req.file) {
+      user.profilePicture = `/uploads/${req.file.filename}`;
+    }
+
+    await user.save();
+
+    res.json({ 
+      message: 'Profile updated successfully',
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        bio: user.bio,
+        profilePicture: user.profilePicture,
+        isPrivate: user.isPrivate
+      }
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

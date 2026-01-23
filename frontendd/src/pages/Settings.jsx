@@ -9,7 +9,10 @@ function Settings() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
-  const [activeTab, setActiveTab] = useState('privacy') // 'privacy' or 'blocked'
+  const [activeTab, setActiveTab] = useState('profile') // 'profile', 'privacy' or 'blocked'
+  const [bio, setBio] = useState('')
+  const [profilePicture, setProfilePicture] = useState(null)
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null)
 
   useEffect(() => {
     fetchUserData()
@@ -27,6 +30,8 @@ function Settings() {
       })
       setUser(response.data)
       setIsPrivate(response.data.isPrivate)
+      setBio(response.data.bio || '')
+      setProfilePicturePreview(response.data.profilePicture)
       setLoading(false)
     } catch (err) {
       console.error('Error fetching user:', err)
@@ -60,6 +65,48 @@ function Settings() {
     }
   }
 
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setProfilePicture(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setProfilePicturePreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault()
+    try {
+      setSaving(true)
+      setMessage('')
+      const token = sessionStorage.getItem('token')
+      const formData = new FormData()
+      formData.append('bio', bio)
+      if (profilePicture) {
+        formData.append('profilePicture', profilePicture)
+      }
+
+      const response = await axios.put('/api/users/me/profile', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+
+      setUser(response.data.user)
+      setProfilePicture(null)
+      setMessage(response.data.message)
+      setTimeout(() => setMessage(''), 3000)
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Error updating profile')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const handleTogglePrivacy = async () => {
     try {
       setSaving(true)
@@ -86,6 +133,12 @@ function Settings() {
         <h3>Settings</h3>
         <ul>
           <li 
+            className={activeTab === 'profile' ? 'active' : ''}
+            onClick={() => setActiveTab('profile')}
+          >
+            <span>👤</span> Edit Profile
+          </li>
+          <li 
             className={activeTab === 'privacy' ? 'active' : ''}
             onClick={() => setActiveTab('privacy')}
           >
@@ -107,6 +160,50 @@ function Settings() {
       </div>
 
       <div className="settings-content">
+        {activeTab === 'profile' && (
+        <>
+        <h2>Edit Profile</h2>
+        {message && (
+          <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
+            {message}
+          </div>
+        )}
+        <form onSubmit={handleUpdateProfile} className="profile-form">
+          <div className="form-group">
+            <label>Profile Picture</label>
+            <div className="profile-picture-section">
+              {profilePicturePreview && (
+                <img src={profilePicturePreview} alt="Profile Preview" className="profile-preview" />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePictureChange}
+                className="file-input"
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="bio">Bio</label>
+            <textarea
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Write something about yourself..."
+              maxLength="150"
+              className="bio-textarea"
+            />
+            <p className="char-count">{bio.length}/150</p>
+          </div>
+
+          <button type="submit" disabled={saving} className="save-btn">
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </form>
+        </>
+        )}
+
         {activeTab === 'privacy' && (
         <>
         <h2>Account & Privacy</h2>
