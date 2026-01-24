@@ -1,107 +1,125 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import ShareStoryModal from './ShareStoryModal'
-import StoryReplyModal from './StoryReplyModal'
-import './StoryViewer.css'
+import { useState, useEffect } from "react";
+import axios from "axios";
+import ShareStoryModal from "./ShareStoryModal";
+import StoryReplyModal from "./StoryReplyModal";
+import ReactionPicker from "./ReactionPicker";
+import ReactionDisplay from "./ReactionDisplay";
+import "./StoryViewer.css";
 
 function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
-  const [currentIndex, setCurrentIndex] = useState(initialIndex)
-  const [progress, setProgress] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const [likes, setLikes] = useState({})
-  const [likedStories, setLikedStories] = useState({})
-  const [showShareModal, setShowShareModal] = useState(false)
-  const [showReplyModal, setShowReplyModal] = useState(false)
-  const [replyCount, setReplyCount] = useState({})
-  const currentUserId = sessionStorage.getItem('userId')
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [progress, setProgress] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [reactions, setReactions] = useState({});
+  const [userReaction, setUserReaction] = useState(null);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showReplyModal, setShowReplyModal] = useState(false);
+  const [replyCount, setReplyCount] = useState({});
+  const currentUserId = sessionStorage.getItem("userId");
 
-  const currentStory = storyGroup.stories[currentIndex]
-  const totalStories = storyGroup.stories.length
+  const currentStory = storyGroup.stories[currentIndex];
+  const totalStories = storyGroup.stories.length;
 
-  // Initialize likes and reply counts from stories
+  // Initialize reactions and reply counts from stories
   useEffect(() => {
-    const likesMap = {}
-    const likedMap = {}
-    const replyCounts = {}
-    storyGroup.stories.forEach(story => {
-      likesMap[story._id] = story.likes?.length || 0
-      likedMap[story._id] = story.likes?.some(like => 
-        like._id === currentUserId || like === currentUserId
-      ) || false
-      replyCounts[story._id] = 0 // Will be updated when reply is sent
-    })
-    setLikes(likesMap)
-    setLikedStories(likedMap)
-    setReplyCount(replyCounts)
-  }, [storyGroup, currentUserId])
+    const reactionsMap = {};
+    const replyCounts = {};
+    storyGroup.stories.forEach((story) => {
+      reactionsMap[story._id] = story.reactions || {};
+      replyCounts[story._id] = 0; // Will be updated when reply is sent
+    });
+    setReactions(reactionsMap);
+    setReplyCount(replyCounts);
+    updateUserReaction();
+  }, [storyGroup, currentUserId]);
 
-  const handleLikeStory = async () => {
-    try {
-      const token = sessionStorage.getItem('token')
-      const response = await axios.put(
-        `/api/stories/${currentStory._id}/like`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      
-      setLikes(prev => ({
-        ...prev,
-        [currentStory._id]: response.data.likeCount
-      }))
-      setLikedStories(prev => ({
-        ...prev,
-        [currentStory._id]: response.data.isLiked
-      }))
-    } catch (err) {
-      console.error('Error liking story:', err)
+  const updateUserReaction = () => {
+    if (currentStory?.reactions) {
+      let userReact = null;
+      Object.entries(currentStory.reactions).forEach(([emoji, users]) => {
+        if (users?.some((id) => String(id) === String(currentUserId))) {
+          userReact = emoji;
+        }
+      });
+      setUserReaction(userReact);
     }
-  }
+  };
+
+  // Update user reaction when story changes
+  useEffect(() => {
+    if (currentStory?.reactions) {
+      let userReact = null;
+      Object.entries(currentStory.reactions).forEach(([emoji, users]) => {
+        if (users?.some((id) => String(id) === String(currentUserId))) {
+          userReact = emoji;
+        }
+      });
+      setUserReaction(userReact);
+    }
+  }, [currentIndex, currentUserId, currentStory]);
+
+  const handleReaction = async (emoji) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      await axios.put(
+        `/api/stories/${currentStory._id}/reaction/${encodeURIComponent(emoji)}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setShowReactionPicker(false);
+      // Refresh to get updated reactions
+      onRefresh();
+    } catch (err) {
+      console.error("Error reacting to story:", err);
+    }
+  };
 
   useEffect(() => {
-    if (paused) return
+    if (paused) return;
 
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           // Move to next story
           if (currentIndex < totalStories - 1) {
-            setCurrentIndex(currentIndex + 1)
-            return 0
+            setCurrentIndex(currentIndex + 1);
+            return 0;
           } else {
             // Close viewer if last story
-            onClose()
-            return 100
+            onClose();
+            return 100;
           }
         }
-        return prev + 2
-      })
-    }, 50)
+        return prev + 2;
+      });
+    }, 50);
 
-    return () => clearInterval(interval)
-  }, [currentIndex, paused, totalStories, onClose])
+    return () => clearInterval(interval);
+  }, [currentIndex, paused, totalStories, onClose]);
 
   const handleNext = () => {
     if (currentIndex < totalStories - 1) {
-      setCurrentIndex(currentIndex + 1)
-      setProgress(0)
+      setCurrentIndex(currentIndex + 1);
+      setProgress(0);
     } else {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   const handlePrev = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1)
-      setProgress(0)
+      setCurrentIndex(currentIndex - 1);
+      setProgress(0);
     }
-  }
+  };
 
   const formatTime = (date) => {
-    const hours = Math.floor((Date.now() - new Date(date).getTime()) / 3600000)
-    if (hours < 1) return 'Now'
-    if (hours < 24) return `${hours}h ago`
-    return 'Old'
-  }
+    const hours = Math.floor((Date.now() - new Date(date).getTime()) / 3600000);
+    if (hours < 1) return "Now";
+    if (hours < 24) return `${hours}h ago`;
+    return "Old";
+  };
 
   return (
     <div
@@ -116,7 +134,12 @@ function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
             key={index}
             className="progress-bar"
             style={{
-              width: index < currentIndex ? '100%' : index === currentIndex ? `${progress}%` : '0%'
+              width:
+                index < currentIndex
+                  ? "100%"
+                  : index === currentIndex
+                    ? `${progress}%`
+                    : "0%",
             }}
           ></div>
         ))}
@@ -126,7 +149,9 @@ function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
       <div className="story-header">
         <div className="story-user-info">
           <img
-            src={storyGroup.user.profilePicture || 'https://via.placeholder.com/40'}
+            src={
+              storyGroup.user.profilePicture || "https://via.placeholder.com/40"
+            }
             alt={storyGroup.user.username}
             className="story-user-avatar"
           />
@@ -135,15 +160,23 @@ function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
             <p>{formatTime(currentStory.createdAt)}</p>
           </div>
         </div>
-        <button onClick={onClose} className="story-close-btn">✕</button>
+        <button onClick={onClose} className="story-close-btn">
+          ✕
+        </button>
       </div>
 
       {/* Media */}
       <div className="story-media-container">
-        {currentStory.mediaType === 'image' ? (
+        {currentStory.mediaType === "image" ? (
           <img src={currentStory.media} alt="Story" className="story-media" />
         ) : (
-          <video src={currentStory.media} className="story-media" autoPlay muted loop />
+          <video
+            src={currentStory.media}
+            className="story-media"
+            autoPlay
+            muted
+            loop
+          />
         )}
       </div>
 
@@ -164,21 +197,38 @@ function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
         </button>
       </div>
 
-      {/* Like Button */}
-      <button 
-        onClick={handleLikeStory}
-        className={`story-like-btn ${likedStories[currentStory._id] ? 'liked' : ''}`}
-        title="Like Story"
+      {/* Reaction Display */}
+      {reactions[currentStory._id] && (
+        <div className="story-reactions">
+          <ReactionDisplay
+            reactions={reactions[currentStory._id]}
+            userReaction={userReaction}
+            onReactionClick={handleReaction}
+            onShowReactors={() => {}}
+          />
+        </div>
+      )}
+
+      {/* Reaction Button */}
+      <button
+        onClick={() => setShowReactionPicker(!showReactionPicker)}
+        className={`story-reaction-btn ${userReaction ? "active" : ""}`}
+        title="React to Story"
       >
-        <span className="like-icon">
-          {likedStories[currentStory._id] ? '❤️' : '🤍'}
-        </span>
-        <span className="like-count">{likes[currentStory._id] || 0}</span>
+        <span className="reaction-icon">{userReaction || "😊"}</span>
       </button>
+
+      {/* Reaction Picker */}
+      {showReactionPicker && (
+        <ReactionPicker
+          onReactionSelect={handleReaction}
+          onClose={() => setShowReactionPicker(false)}
+        />
+      )}
 
       {/* Share Button */}
       {currentUserId !== storyGroup.user._id && (
-        <button 
+        <button
           onClick={() => setShowShareModal(true)}
           className="story-share-btn"
           title="Share Story"
@@ -189,7 +239,7 @@ function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
 
       {/* Reply Button */}
       {currentUserId !== storyGroup.user._id && (
-        <button 
+        <button
           onClick={() => setShowReplyModal(true)}
           className="story-reply-btn"
           title="Reply to Story"
@@ -208,32 +258,32 @@ function StoryViewer({ storyGroup, initialIndex = 0, onClose, onRefresh }) {
 
       {/* Share Modal */}
       {showShareModal && (
-        <ShareStoryModal 
+        <ShareStoryModal
           storyId={currentStory._id}
           onClose={() => setShowShareModal(false)}
           onSuccess={() => {
-            alert('Story shared successfully!')
-            onRefresh()
+            alert("Story shared successfully!");
+            onRefresh();
           }}
         />
       )}
 
       {/* Reply Modal */}
       {showReplyModal && (
-        <StoryReplyModal 
+        <StoryReplyModal
           storyId={currentStory._id}
           storyAuthorName={storyGroup.user.username}
           onClose={() => setShowReplyModal(false)}
           onReplySuccess={(reply) => {
-            setReplyCount(prev => ({
+            setReplyCount((prev) => ({
               ...prev,
-              [currentStory._id]: (prev[currentStory._id] || 0) + 1
-            }))
+              [currentStory._id]: (prev[currentStory._id] || 0) + 1,
+            }));
           }}
         />
       )}
     </div>
-  )
+  );
 }
 
-export default StoryViewer
+export default StoryViewer;
