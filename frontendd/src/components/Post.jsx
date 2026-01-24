@@ -2,34 +2,52 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import LikersModal from './LikersModal'
 import ShareModal from './ShareModal'
+import ReactionPicker from './ReactionPicker'
+import ReactionDisplay from './ReactionDisplay'
 import './Post.css'
 
 function Post({ post, onPostUpdate }) {
-  const [liked, setLiked] = useState(false)
+  const [reactions, setReactions] = useState({})
+  const [userReaction, setUserReaction] = useState(null)
+  const [showReactionPicker, setShowReactionPicker] = useState(false)
   const [comment, setComment] = useState('')
   const [showLikersModal, setShowLikersModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const currentUserId = sessionStorage.getItem('userId')
 
-  // Check if current user has liked this post
+  // Check if current user has reacted to this post
   useEffect(() => {
-    const userHasLiked = post.likes?.some(id => String(id) === String(currentUserId))
-    setLiked(userHasLiked || false)
-  }, [post._id, currentUserId, post.likes])
+    if (post.reactions) {
+      setReactions(post.reactions)
+      // Find user's reaction
+      let userReact = null
+      Object.entries(post.reactions).forEach(([emoji, users]) => {
+        if (users?.some(id => String(id) === String(currentUserId))) {
+          userReact = emoji
+        }
+      })
+      setUserReaction(userReact)
+    }
+  }, [post._id, currentUserId, post.reactions])
 
-  const handleLike = async () => {
+  const handleReaction = async (emoji) => {
     try {
       const token = sessionStorage.getItem('token')
       await axios.put(
-        `/api/posts/${post._id}/like`,
+        `/api/posts/${post._id}/reaction/${emoji}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      setLiked(!liked)
+      setShowReactionPicker(false)
       onPostUpdate()
     } catch (err) {
-      console.error('Error liking post:', err)
+      console.error('Error adding reaction:', err)
     }
+  }
+
+  const handleLike = async () => {
+    // Legacy like button maps to ❤️ reaction
+    await handleReaction('❤️')
   }
 
   const handleComment = async (e) => {
@@ -75,18 +93,34 @@ function Post({ post, onPostUpdate }) {
         <img src={post.media} alt="Post" className="post-media" />
       )}
       <div className="post-actions">
-         <button onClick={handleLike} className={`like-btn ${liked ? 'liked' : ''}`}>
-           {liked ? '❤️' : '♡'} Like
-         </button>
-         {post.likes?.length > 0 && (
-           <button onClick={() => setShowLikersModal(true)} className="likers-count">
-             {post.likes.length} {post.likes.length === 1 ? 'like' : 'likes'}
+         <div className="reaction-actions">
+           <button 
+             onClick={() => setShowReactionPicker(!showReactionPicker)} 
+             className={`reaction-btn ${userReaction ? 'active' : ''}`}
+             title="React to post"
+           >
+             {userReaction || '😊'} React
            </button>
-         )}
+           {showReactionPicker && (
+             <ReactionPicker 
+               onReactionSelect={handleReaction}
+               onClose={() => setShowReactionPicker(false)}
+             />
+           )}
+         </div>
          <button onClick={() => setShowShareModal(true)} className="share-btn" title="Share post">
            ↗️ Share
          </button>
        </div>
+
+       {/* Show reactions */}
+       <ReactionDisplay 
+         reactions={reactions}
+         userReaction={userReaction}
+         onReactionClick={handleReaction}
+         onShowReactors={() => setShowLikersModal(true)}
+       />
+
       <div className="post-caption">
         <strong>{post.author?.username}</strong> {post.caption}
       </div>

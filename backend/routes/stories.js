@@ -6,6 +6,7 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const upload = require('../config/multer');
 const { protect } = require('../middleware/auth');
+const { validateReaction, getReactionLabel } = require('../utils/reactions');
 
 const router = express.Router();
 
@@ -241,6 +242,83 @@ router.get('/:storyId/replies', protect, async (req, res) => {
 });
 
 // Like/Unlike story
+// Story reaction endpoint
+router.put('/:storyId/reaction/:emoji', protect, async (req, res) => {
+  try {
+    // Decode URL-encoded emoji
+    const emoji = decodeURIComponent(req.params.emoji);
+    
+    // Validate emoji
+    if (!validateReaction(emoji)) {
+      return res.status(400).json({ message: `Invalid reaction emoji: ${emoji}` });
+    }
+
+    const story = await Story.findById(req.params.storyId)
+      .populate('author', 'username profilePicture');
+
+    if (!story) {
+      return res.status(404).json({ message: 'Story not found' });
+    }
+
+    // Initialize reactions if not exists
+    if (!story.reactions) {
+      story.reactions = {};
+    }
+
+    if (!story.reactions[emoji]) {
+      story.reactions[emoji] = [];
+    }
+
+    // Check if user already reacted with this emoji
+    const hasReacted = story.reactions[emoji].includes(req.userId);
+
+    if (hasReacted) {
+      // Remove reaction
+      story.reactions[emoji] = story.reactions[emoji].filter(id => id.toString() !== req.userId);
+    } else {
+      // Remove user from all other reactions
+      Object.keys(story.reactions).forEach(key => {
+        story.reactions[key] = story.reactions[key].filter(id => id.toString() !== req.userId);
+      });
+
+      // Add new reaction
+      story.reactions[emoji].push(req.userId);
+
+      // Create notification for story author
+      if (String(story.author._id) !== req.userId) {
+        const currentUser = await User.findById(req.userId);
+        await Notification.create({
+          recipient: story.author._id,
+          sender: req.userId,
+          type: 'story_reaction',
+          message: `${currentUser.username} ${getReactionLabel(emoji)} your story`
+        });
+      }
+    }
+
+    // Clean up empty reaction arrays
+    Object.keys(story.reactions).forEach(key => {
+      if (story.reactions[key].length === 0) {
+        delete story.reactions[key];
+      }
+    });
+
+    // Also update likes field for backward compatibility
+    story.likes = story.reactions['❤️'] || [];
+
+    await story.save();
+
+    res.json({
+      _id: story._id,
+      reactions: story.reactions,
+      isReacted: true
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Legacy like endpoint (maps to ❤️ reaction)
 router.put('/:storyId/like', protect, async (req, res) => {
   try {
     const story = await Story.findById(req.params.storyId)
@@ -251,23 +329,31 @@ router.put('/:storyId/like', protect, async (req, res) => {
       return res.status(404).json({ message: 'Story not found' });
     }
 
+    // Initialize reactions if not exists
+    if (!story.reactions) {
+      story.reactions = {};
+    }
+
+    if (!story.reactions['❤️']) {
+      story.reactions['❤️'] = [];
+    }
+
     // Check if already liked
-    const isLiked = story.likes.some(like => String(like._id) === req.userId);
+    const isLiked = story.reactions['❤️'].some(id => String(id) === req.userId);
 
     if (isLiked) {
       // Unlike
-      story.likes = story.likes.filter(like => String(like._id) !== req.userId);
+      story.reactions['❤️'] = story.reactions['❤️'].filter(id => String(id) !== req.userId);
       
       // Delete like notification
       await Notification.deleteOne({
         recipient: story.author._id,
         sender: req.userId,
-        type: 'story_like',
-        reference: req.params.storyId
+        type: 'story_reaction'
       });
     } else {
       // Like
-      story.likes.push(req.userId);
+      story.reactions['❤️'].push(req.userId);
       
       // Create notification only if liking own story is avoided
       if (String(story.author._id) !== req.userId) {
@@ -275,12 +361,14 @@ router.put('/:storyId/like', protect, async (req, res) => {
         await Notification.create({
           recipient: story.author._id,
           sender: req.userId,
-          type: 'story_like',
-          message: `${currentUser.username} liked your story`,
-          reference: req.params.storyId
+          type: 'story_reaction',
+          message: `${currentUser.username} loved your story`
         });
       }
     }
+
+    // Also update likes field for backward compatibility
+    story.likes = story.reactions['❤️'] || [];
 
     await story.save();
     await story.populate('likes', 'username profilePicture');
@@ -288,6 +376,7 @@ router.put('/:storyId/like', protect, async (req, res) => {
     res.json({
       _id: story._id,
       likes: story.likes,
+      reactions: story.reactions,
       likeCount: story.likes.length,
       isLiked: !isLiked
     });

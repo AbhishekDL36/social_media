@@ -1,0 +1,100 @@
+.reaction-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+}
+
+.reaction-picker {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.reaction-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reaction-btn:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.reaction-emoji {
+  font-size: 24px;
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.reaction-emoji.active {
+  transform: scale(1.4);
+  animation: popReaction 0.4s ease-out;
+}
+
+@keyframes popReaction {
+  0% {
+    transform: scale(0.5);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1.4);
+  }
+}
+
+.reaction-label {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Position variants for different placements */
+.reaction-picker.bottom-right {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.reaction-picker.top {
+  bottom: auto;
+  top: 50px;
+}
+
+.reaction-picker.inline {
+  position: static;
+  transform: none;
+  animation: none;
+  border-radius: 8px;
+}

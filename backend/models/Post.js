@@ -16,6 +16,33 @@ const postSchema = new mongoose.Schema({
     enum: ['image', 'video'],
     default: 'image'
   },
+  reactions: {
+    '❤️': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    '😂': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    '🔥': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    '😮': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    '😢': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    '😡': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }]
+  },
+  // Keep likes for backward compatibility - maps to ❤️ reaction
   likes: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

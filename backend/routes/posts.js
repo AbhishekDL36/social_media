@@ -3,6 +3,7 @@ const Post = require('../models/Post');
 const Notification = require('../models/Notification');
 const { protect } = require('../middleware/auth');
 const upload = require('../config/multer');
+const { validateReaction, getReactionLabel } = require('../utils/reactions');
 
 const router = express.Router();
 
@@ -119,38 +120,120 @@ router.post('/', protect, upload.single('media'), async (req, res) => {
   }
 });
 
-// Like post
+// Reaction to post
+router.put('/:id/reaction/:emoji', protect, async (req, res) => {
+  try {
+    // Decode URL-encoded emoji
+    const emoji = decodeURIComponent(req.params.emoji);
+    
+    // Validate emoji
+    if (!validateReaction(emoji)) {
+      return res.status(400).json({ message: `Invalid reaction emoji: ${emoji}` });
+    }
+
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    // Initialize reactions if not exists
+    if (!post.reactions) {
+      post.reactions = {};
+    }
+
+    // Initialize emoji array if not exists
+    if (!post.reactions[emoji]) {
+      post.reactions[emoji] = [];
+    }
+
+    // Check if user already reacted with this emoji
+    const hasReacted = post.reactions[emoji].includes(req.userId);
+
+    if (hasReacted) {
+      // Remove reaction
+      post.reactions[emoji] = post.reactions[emoji].filter(id => id.toString() !== req.userId);
+    } else {
+      // Remove user from all other reactions
+      Object.keys(post.reactions).forEach(key => {
+        post.reactions[key] = post.reactions[key].filter(id => id.toString() !== req.userId);
+      });
+
+      // Add new reaction
+      post.reactions[emoji].push(req.userId);
+
+      // Create notification for post author (only if not reacting to own post)
+      if (post.author.toString() !== req.userId) {
+        await Notification.create({
+          recipient: post.author,
+          sender: req.userId,
+          type: 'reaction',
+          message: `${getReactionLabel(emoji)} reacted to your post`,
+          post: post._id
+        });
+      }
+    }
+
+    // Clean up empty reaction arrays
+    Object.keys(post.reactions).forEach(key => {
+      if (post.reactions[key].length === 0) {
+        delete post.reactions[key];
+      }
+    });
+
+    // Also update likes field for backward compatibility (❤️ only)
+    post.likes = post.reactions['❤️'] || [];
+
+    await post.save();
+    await post.populate('author', 'username');
+    
+    res.json(post);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Legacy like endpoint (maps to ❤️ reaction)
 router.put('/:id/like', protect, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    const isLiking = !post.likes.includes(req.userId);
+    // Initialize reactions if not exists
+    if (!post.reactions) {
+      post.reactions = {};
+    }
+
+    if (!post.reactions['❤️']) {
+      post.reactions['❤️'] = [];
+    }
+
+    const isLiking = !post.reactions['❤️'].includes(req.userId);
 
     if (isLiking) {
-      post.likes.push(req.userId);
+      post.reactions['❤️'].push(req.userId);
       
       // Create notification for post author (only if not liking own post)
       if (post.author.toString() !== req.userId) {
-        const notification = new Notification({
+        await Notification.create({
           recipient: post.author,
           sender: req.userId,
-          type: 'like',
+          type: 'reaction',
+          message: 'Loved your post',
           post: post._id
         });
-        await notification.save();
       }
     } else {
-      post.likes = post.likes.filter(id => id.toString() !== req.userId);
+      post.reactions['❤️'] = post.reactions['❤️'].filter(id => id.toString() !== req.userId);
       
-      // Delete like notification
+      // Delete reaction notification
       await Notification.deleteOne({
         recipient: post.author,
         sender: req.userId,
-        type: 'like',
+        type: 'reaction',
         post: post._id
       });
     }
+
+    // Also update likes field for backward compatibility
+    post.likes = post.reactions['❤️'] || [];
 
     await post.save();
     res.json(post);

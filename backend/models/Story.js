@@ -23,6 +23,33 @@ const storySchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+  reactions: {
+    '❤️': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    '😂': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    '🔥': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    '😮': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    '😢': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    '😡': [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }]
+  },
+  // Keep likes for backward compatibility - maps to ❤️ reaction
   likes: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
