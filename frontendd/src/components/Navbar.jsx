@@ -77,6 +77,7 @@ function Navbar({ toggleTheme, theme }) {
             Notifications
             {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
           </button>
+          <button onClick={() => navigate('/groups')} className="nav-link">👥 Groups</button>
           <button onClick={() => navigate(`/profile/${userId}`)} className="nav-link">My Profile</button>
           <button 
             onClick={() => {

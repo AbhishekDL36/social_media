@@ -5,10 +5,25 @@ import './Messages.css'
 import ChatWindow from '../components/ChatWindow'
 import MessageRequests from '../components/MessageRequests'
 import Post from '../components/Post'
+import GroupChatModal from '../components/GroupChatModal'
+
+// Component to display group chat in Messages
+function GroupChat({ group, onBack }) {
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <GroupChatModal 
+        group={group} 
+        onClose={onBack}
+      />
+    </div>
+  )
+}
 
 function Messages() {
   const [conversations, setConversations] = useState([])
+  const [groups, setGroups] = useState([])
   const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedGroup, setSelectedGroup] = useState(null)
   const [sharedPosts, setSharedPosts] = useState([])
   const [sharedWithUsers, setSharedWithUsers] = useState([]) // Users I've shared with
   const [view, setView] = useState('chats') // 'chats', 'requests', or 'shared'
@@ -23,6 +38,7 @@ function Messages() {
     }
     if (view === 'chats' || view === 'requests') {
       fetchConversations()
+      fetchGroups()
     } else if (view === 'shared') {
       // Fetch list of users I've shared with
       fetchSharedWithUsers()
@@ -57,6 +73,18 @@ function Messages() {
     } catch (err) {
       console.error('Error fetching conversations:', err)
       setLoading(false)
+    }
+  }
+
+  const fetchGroups = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const response = await axios.get('/api/groups', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setGroups(response.data)
+    } catch (err) {
+      console.error('Error fetching groups:', err)
     }
   }
 
@@ -159,29 +187,65 @@ function Messages() {
           <>
             {loading ? (
               <p className="loading">Loading chats...</p>
-            ) : conversations.length === 0 ? (
+            ) : conversations.length === 0 && groups.length === 0 ? (
               <p className="empty">No conversations yet</p>
             ) : (
               <div className="conversations-list">
-                {conversations.map((conv) => (
-                  <div
-                    key={conv.user._id}
-                    className={`conversation-item ${selectedUser?._id === conv.user._id ? 'active' : ''}`}
-                    onClick={() => setSelectedUser(conv.user)}
-                  >
-                    <img
-                      src={conv.user.profilePicture || 'https://via.placeholder.com/40'}
-                      alt={conv.user.username}
-                    />
-                    <div className="conversation-info">
-                      <h4>{conv.user.username}</h4>
-                      <p>{conv.lastMessage.substring(0, 40)}...</p>
-                    </div>
-                    {conv.unreadCount > 0 && (
-                      <span className="unread-badge">{conv.unreadCount}</span>
-                    )}
-                  </div>
-                ))}
+                {/* Groups Section */}
+                {groups.length > 0 && (
+                  <>
+                    <div className="conversations-section-header">👥 Groups</div>
+                    {groups.map((group) => (
+                      <div
+                        key={`group-${group._id}`}
+                        className={`conversation-item group-item ${selectedGroup?._id === group._id ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedGroup(group)
+                          setSelectedUser(null)
+                        }}
+                      >
+                        <img
+                          src={group.profilePicture || 'https://via.placeholder.com/40?text=Group'}
+                          alt={group.name}
+                          className="group-avatar"
+                        />
+                        <div className="conversation-info">
+                          <h4>{group.name}</h4>
+                          <p>{group.members.length} members</p>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {/* Direct Messages Section */}
+                {conversations.length > 0 && (
+                  <>
+                    <div className="conversations-section-header">💬 Direct Messages</div>
+                    {conversations.map((conv) => (
+                      <div
+                        key={`user-${conv.user._id}`}
+                        className={`conversation-item ${selectedUser?._id === conv.user._id ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedUser(conv.user)
+                          setSelectedGroup(null)
+                        }}
+                      >
+                        <img
+                          src={conv.user.profilePicture || 'https://via.placeholder.com/40'}
+                          alt={conv.user.username}
+                        />
+                        <div className="conversation-info">
+                          <h4>{conv.user.username}</h4>
+                          <p>{conv.lastMessage.substring(0, 40)}...</p>
+                        </div>
+                        {conv.unreadCount > 0 && (
+                          <span className="unread-badge">{conv.unreadCount}</span>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             )}
           </>
@@ -230,6 +294,10 @@ function Messages() {
 
       {selectedUser && (
         <ChatWindow user={selectedUser} onBack={() => setSelectedUser(null)} />
+      )}
+
+      {selectedGroup && (
+        <GroupChat group={selectedGroup} onBack={() => setSelectedGroup(null)} />
       )}
        </div>
     </div>

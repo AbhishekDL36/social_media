@@ -7,6 +7,18 @@ const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Get user's friends (following list)
+router.get('/friends/list', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId)
+      .populate('following', 'username profilePicture email bio');
+    
+    res.json(user.following || []);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Search users
 router.get('/search/:query', protect, async (req, res) => {
   try {

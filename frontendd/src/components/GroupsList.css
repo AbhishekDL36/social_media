@@ -1,0 +1,183 @@
+.groups-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.groups-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 15px;
+}
+
+.groups-header h2 {
+  margin: 0;
+  font-size: 28px;
+  color: #000;
+}
+
+.create-group-btn {
+  background: #0095f6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 24px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.create-group-btn:hover {
+  background: #0080d0;
+}
+
+.groups-loading {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-size: 16px;
+}
+
+.no-groups {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.no-groups p {
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+.groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.group-card {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background: white;
+}
+
+.group-card:hover {
+  background: #fafafa;
+  border-color: #e0e0e0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.group-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.group-info {
+  flex: 1;
+}
+
+.group-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  color: #000;
+  font-weight: 600;
+}
+
+.group-description {
+  margin: 0 0 10px 0;
+  color: #999;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 300px;
+}
+
+.group-meta {
+  display: flex;
+  gap: 15px;
+  font-size: 13px;
+  color: #666;
+}
+
+.member-count,
+.group-type {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.group-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-btn {
+  background: #0095f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.chat-btn:hover {
+  background: #0080d0;
+}
+
+.delete-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.delete-btn:hover {
+  background: #d32f2f;
+}
+
+@media (max-width: 600px) {
+  .groups-container {
+    padding: 10px;
+  }
+
+  .group-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .group-avatar {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .group-description {
+    max-width: 100%;
+  }
+
+  .group-meta {
+    justify-content: center;
+  }
+}
