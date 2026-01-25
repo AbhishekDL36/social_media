@@ -4,7 +4,7 @@ import axios from 'axios'
 import './Navbar.css'
 import StoryUploader from './StoryUploader'
 
-function Navbar({ toggleTheme, theme }) {
+function Navbar({ toggleTheme, theme, onLogout }) {
   const navigate = useNavigate()
   const userId = sessionStorage.getItem('userId')
   const [unreadCount, setUnreadCount] = useState(0)
@@ -53,8 +53,7 @@ function Navbar({ toggleTheme, theme }) {
   }
 
   const handleLogout = () => {
-    sessionStorage.removeItem('token')
-    sessionStorage.removeItem('userId')
+    onLogout()
     navigate('/login')
   }
 

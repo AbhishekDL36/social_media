@@ -39,10 +39,16 @@ function App() {
     setTheme(prev => prev === 'light' ? 'dark' : 'light')
   }
 
+  const handleLogout = () => {
+    setUser(null)
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('userId')
+  }
+
   return (
     <Router>
       <NetworkError />
-      {user && <Navbar theme={theme} toggleTheme={toggleTheme} />}
+      {user && <Navbar theme={theme} toggleTheme={toggleTheme} onLogout={handleLogout} />}
       <Routes>
          <Route path="/login" element={<Login setUser={setUser} />} />
          <Route path="/register" element={<Register setUser={setUser} />} />
