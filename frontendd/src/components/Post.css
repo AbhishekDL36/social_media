@@ -79,6 +79,27 @@
   color: #0095f6;
 }
 
+.post-actions button.save-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.post-actions button.save-btn:hover {
+  background-color: #f0f0f0;
+  border-color: #999;
+}
+
+.post-actions button.save-btn.saved {
+  background-color: #fffbf0;
+  border-color: #ffa500;
+  color: #ff8c00;
+}
+
 .post-actions button.like-btn.liked {
   color: #ed4956;
 }

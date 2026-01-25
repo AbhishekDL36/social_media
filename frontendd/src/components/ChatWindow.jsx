@@ -1,14 +1,60 @@
 import { useState, useEffect, useRef } from 'react'
-import axios from 'axios'
+import axios from '../utils/axiosConfig'
+import { io } from 'socket.io-client'
 import './ChatWindow.css'
 
 function ChatWindow({ user, onBack }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
+  const [isTyping, setIsTyping] = useState(false)
+  const [otherUserTyping, setOtherUserTyping] = useState(false)
   const messagesEndRef = useRef(null)
   const messagesListRef = useRef(null)
   const initialLoadRef = useRef(true)
+  const currentUserId = sessionStorage.getItem('userId')
+  const socketRef = useRef(null)
+  const typingTimeoutRef = useRef(null)
+
+  // Initialize Socket.io
+  useEffect(() => {
+    if (!socketRef.current) {
+      const socketURL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+      console.log('Initializing Socket.io with URL:', socketURL)
+      socketRef.current = io(socketURL, {
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 5
+      })
+      
+      socketRef.current.on('connect', () => {
+        console.log('Connected to socket server')
+        socketRef.current.emit('user:join', currentUserId)
+      })
+
+      socketRef.current.on('connect_error', (error) => {
+        console.error('Socket connection error:', error)
+      })
+
+      socketRef.current.on('typing:indicator', (data) => {
+        console.log('Typing indicator:', data)
+        if (data.isTyping) {
+          setOtherUserTyping(true)
+        } else {
+          setOtherUserTyping(false)
+        }
+      })
+
+      socketRef.current.on('disconnect', () => {
+        console.log('Disconnected from socket server')
+      })
+    }
+
+    return () => {
+      // Don't disconnect on unmount - keep connection alive
+    }
+  }, [])
 
   useEffect(() => {
     initialLoadRef.current = true
@@ -92,7 +138,58 @@ function ChatWindow({ user, onBack }) {
     }
   }
 
-  const currentUserId = sessionStorage.getItem('userId')
+  const handleInputChange = (e) => {
+    const value = e.target.value
+    setInput(value)
+
+    // Emit typing event
+    if (value && !isTyping) {
+      setIsTyping(true)
+      console.log('User started typing, emitting typing:start', {
+        userId: currentUserId,
+        recipientId: user._id
+      })
+      socketRef.current?.emit('typing:start', {
+        userId: currentUserId,
+        recipientId: user._id
+      })
+    }
+
+    // Clear previous timeout and set a new one
+    clearTimeout(typingTimeoutRef.current)
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false)
+      console.log('User stopped typing, emitting typing:stop', {
+        userId: currentUserId,
+        recipientId: user._id
+      })
+      socketRef.current?.emit('typing:stop', {
+        userId: currentUserId,
+        recipientId: user._id
+      })
+    }, 1000)
+  }
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm('Delete this message?')) return
+
+    try {
+      const token = sessionStorage.getItem('token')
+      await axios.delete(
+        `/api/messages/${messageId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      // Update message in state
+      setMessages(messages.map(msg => 
+        msg._id === messageId 
+          ? { ...msg, deleted: true, text: '' }
+          : msg
+      ))
+    } catch (err) {
+      console.error('Error deleting message:', err)
+      alert('Could not delete message')
+    }
+  }
 
   const handleMessageLike = async (messageId) => {
     try {
@@ -108,6 +205,24 @@ function ChatWindow({ user, onBack }) {
       console.error('Error liking message:', err)
     }
   }
+
+  // Update online status
+  useEffect(() => {
+    const updateStatus = async () => {
+      try {
+        const token = sessionStorage.getItem('token')
+        await axios.put('/api/users/update-status', {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      } catch (err) {
+        console.error('Error updating status:', err)
+      }
+    }
+
+    updateStatus()
+    const interval = setInterval(updateStatus, 30000) // Update every 30 seconds
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="chat-window">
@@ -125,9 +240,9 @@ function ChatWindow({ user, onBack }) {
           messages.map((msg) => (
             <div
               key={msg._id}
-              className={`message ${msg.sender._id === currentUserId ? 'sent' : 'received'}`}
+              className={`message ${msg.sender._id === currentUserId ? 'sent' : 'received'} ${msg.deleted ? 'deleted' : ''}`}
             >
-              {msg.storyReply && (
+              {msg.storyReply && !msg.deleted && (
                 <div className="story-reply-context">
                   <img 
                     src={msg.storyReply.storyMedia || 'https://via.placeholder.com/50'} 
@@ -143,19 +258,39 @@ function ChatWindow({ user, onBack }) {
                 </div>
               )}
               <div className="message-content">
-                <p>{msg.text}</p>
-                <button
-                  onClick={() => handleMessageLike(msg._id)}
-                  className={`message-like-btn ${msg.likes?.some(id => String(id) === String(currentUserId)) ? 'liked' : ''}`}
-                >
-                  {msg.likes?.some(id => String(id) === String(currentUserId)) ? '❤️' : '♡'} {msg.likes?.length || 0}
-                </button>
+                <p className={msg.deleted ? 'deleted-text' : ''}>{msg.deleted ? 'This message was deleted' : msg.text}</p>
+                {!msg.deleted && (
+                  <button
+                    onClick={() => handleMessageLike(msg._id)}
+                    className={`message-like-btn ${msg.likes?.some(id => String(id) === String(currentUserId)) ? 'liked' : ''}`}
+                  >
+                    {msg.likes?.some(id => String(id) === String(currentUserId)) ? '❤️' : '♡'} {msg.likes?.length || 0}
+                  </button>
+                )}
+                {msg.sender._id === currentUserId && !msg.deleted && (
+                  <button
+                    onClick={() => handleDeleteMessage(msg._id)}
+                    className="message-delete-btn"
+                    title="Delete message"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
               <span className="timestamp">
                 {new Date(msg.createdAt).toLocaleTimeString()}
               </span>
             </div>
           ))
+        )}
+        {otherUserTyping && (
+          <div className="message received typing-indicator">
+            <div className="typing-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
@@ -165,7 +300,7 @@ function ChatWindow({ user, onBack }) {
           type="text"
           placeholder="Type a message..."
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={handleInputChange}
         />
         <button type="submit">Send</button>
       </form>

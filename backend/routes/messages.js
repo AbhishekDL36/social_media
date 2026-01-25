@@ -211,4 +211,28 @@ router.put('/:messageId/like', protect, async (req, res) => {
   }
 });
 
+// Delete message (soft delete)
+router.delete('/:messageId', protect, async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ message: 'Message not found' });
+    }
+
+    // Only sender can delete their own message
+    if (String(message.sender) !== req.userId) {
+      return res.status(403).json({ message: 'You can only delete your own messages' });
+    }
+
+    // Soft delete - mark as deleted instead of removing
+    message.deleted = true;
+    message.text = '';
+    await message.save();
+
+    res.json({ message: 'Message deleted', deleted: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

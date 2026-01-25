@@ -7,11 +7,26 @@ const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Update user online status
+router.put('/update-status', protect, async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { lastActive: new Date() },
+      { new: true }
+    ).select('_id username lastActive');
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get user's friends (following list)
 router.get('/friends/list', protect, async (req, res) => {
   try {
     const user = await User.findById(req.userId)
-      .populate('following', 'username profilePicture email bio');
+      .populate('following', 'username profilePicture email bio lastActive');
     
     res.json(user.following || []);
   } catch (err) {

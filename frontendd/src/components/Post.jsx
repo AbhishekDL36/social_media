@@ -13,9 +13,10 @@ function Post({ post, onPostUpdate }) {
   const [comment, setComment] = useState('')
   const [showLikersModal, setShowLikersModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [saved, setSaved] = useState(false)
   const currentUserId = sessionStorage.getItem('userId')
 
-  // Check if current user has reacted to this post
+  // Check if current user has reacted to this post and if saved
   useEffect(() => {
     if (post.reactions) {
       setReactions(post.reactions)
@@ -28,7 +29,35 @@ function Post({ post, onPostUpdate }) {
       })
       setUserReaction(userReact)
     }
+    checkIfSaved()
   }, [post._id, currentUserId, post.reactions])
+
+  const checkIfSaved = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const response = await axios.get(
+        `/api/posts/${post._id}/is-saved`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setSaved(response.data.saved)
+    } catch (err) {
+      console.error('Error checking saved status:', err)
+    }
+  }
+
+  const handleSavePost = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      await axios.post(
+        `/api/posts/${post._id}/save`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setSaved(!saved)
+    } catch (err) {
+      console.error('Error saving post:', err)
+    }
+  }
 
   const handleReaction = async (emoji) => {
     try {
@@ -108,6 +137,13 @@ function Post({ post, onPostUpdate }) {
              />
            )}
          </div>
+         <button 
+           onClick={handleSavePost} 
+           className={`save-btn ${saved ? 'saved' : ''}`}
+           title={saved ? 'Unsave post' : 'Save post'}
+         >
+           {saved ? '📌' : '🔖'} {saved ? 'Saved' : 'Save'}
+         </button>
          <button onClick={() => setShowShareModal(true)} className="share-btn" title="Share post">
            ↗️ Share
          </button>

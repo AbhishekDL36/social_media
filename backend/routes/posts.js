@@ -1,5 +1,6 @@
 const express = require('express');
 const Post = require('../models/Post');
+const SavedPost = require('../models/SavedPost');
 const Notification = require('../models/Notification');
 const { protect } = require('../middleware/auth');
 const upload = require('../config/multer');
@@ -330,6 +331,71 @@ router.put('/:id/comment/:index/like', protect, async (req, res) => {
     res.json(post);
   } catch (err) {
     console.error('Error liking comment:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Save/Bookmark post
+router.post('/:postId/save', protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if already saved
+    const existingSave = await SavedPost.findOne({
+      user: req.userId,
+      post: req.params.postId
+    });
+
+    if (existingSave) {
+      // Unsave
+      await SavedPost.deleteOne({ _id: existingSave._id });
+      return res.json({ message: 'Post unsaved', saved: false });
+    }
+
+    // Save
+    await SavedPost.create({
+      user: req.userId,
+      post: req.params.postId
+    });
+
+    res.json({ message: 'Post saved', saved: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get saved posts
+router.get('/saved/posts', protect, async (req, res) => {
+  try {
+    const savedPosts = await SavedPost.find({ user: req.userId })
+      .populate({
+        path: 'post',
+        populate: [
+          { path: 'author', select: 'username profilePicture' }
+        ]
+      })
+      .sort({ savedAt: -1 });
+
+    const posts = savedPosts.map(sp => sp.post);
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Check if post is saved
+router.get('/:postId/is-saved', protect, async (req, res) => {
+  try {
+    const saved = await SavedPost.findOne({
+      user: req.userId,
+      post: req.params.postId
+    });
+
+    res.json({ saved: !!saved });
+  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
