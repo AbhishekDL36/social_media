@@ -46,7 +46,13 @@
   color-scheme: light;
 }
 
+body, html {
+  width: 100%;
+  overflow-x: hidden;
+}
+
 .app {
-  max-width: 935px;
+  max-width: 100%;
   margin: 0 auto;
+  overflow-x: hidden;
 }

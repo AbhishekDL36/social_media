@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import axios from '../utils/axiosConfig'
 import './Home.css'
 import Post from '../components/Post'
 import Stories from '../components/Stories'
 import StoryUploader from '../components/StoryUploader'
+import PeopleYouMayKnow from '../components/PeopleYouMayKnow'
 
 function Home() {
   const [posts, setPosts] = useState([])
@@ -144,6 +145,8 @@ function Home() {
           <button type="submit" disabled={loading}>{loading ? 'Posting...' : 'Post'}</button>
         </form>
       </div>
+
+      <PeopleYouMayKnow />
 
       <div className="feed-section">
          <h2>Feed</h2>

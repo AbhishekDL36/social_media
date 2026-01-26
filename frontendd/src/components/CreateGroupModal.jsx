@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import axios from "../utils/axiosConfig";
 import "./CreateGroupModal.css";
 
 function CreateGroupModal({ onClose, onSuccess }) {

@@ -44,6 +44,7 @@ router.get('/search/:query', protect, async (req, res) => {
     }
 
     const users = await User.find({
+      _id: { $ne: req.userId },
       $or: [
         { username: { $regex: query, $options: 'i' } },
         { email: { $regex: query, $options: 'i' } }
@@ -276,6 +277,86 @@ router.get('/:id/is-blocked', protect, async (req, res) => {
 
     res.json({ isBlocked: !!block });
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get suggested users (friends of friends)
+router.get('/suggestions/may-know', protect, async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    console.log('Fetching suggestions for user:', req.userId);
+    
+    const currentUserId = new mongoose.Types.ObjectId(req.userId);
+    
+    const user = await User.findById(req.userId).populate('following');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    const friendIds = user.following.map(f => f._id);
+    console.log('Friend IDs:', friendIds.length);
+    
+    if (friendIds.length === 0) {
+      console.log('No friends, returning empty suggestions');
+      return res.json([]);
+    }
+    
+    // Get friends of friends
+    console.log('Starting aggregation...');
+    const friendsOfFriends = await User.aggregate([
+      {
+        $match: {
+          _id: { $in: friendIds }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'following',
+          foreignField: '_id',
+          as: 'friendsFollowing'
+        }
+      },
+      {
+        $unwind: '$friendsFollowing'
+      },
+      {
+        $group: {
+          _id: '$friendsFollowing._id',
+          user: { $first: '$friendsFollowing' },
+          mutualFriendsCount: { $sum: 1 }
+        }
+      },
+      {
+        $match: {
+          _id: {
+            $nin: [currentUserId, ...friendIds]
+          }
+        }
+      },
+      {
+        $sort: { mutualFriendsCount: -1 }
+      },
+      {
+        $limit: 10
+      }
+    ]);
+
+    console.log('Friends of friends found:', friendsOfFriends.length);
+
+    const suggestions = friendsOfFriends.map(item => ({
+      _id: item.user._id,
+      username: item.user.username,
+      profilePicture: item.user.profilePicture,
+      bio: item.user.bio,
+      mutualFriends: item.mutualFriendsCount
+    }));
+
+    console.log('Returning suggestions:', suggestions.length);
+    res.json(suggestions);
+  } catch (err) {
+    console.error('Error in suggestions endpoint:', err);
     res.status(500).json({ message: err.message });
   }
 });

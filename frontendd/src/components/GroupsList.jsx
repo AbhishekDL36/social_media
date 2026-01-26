@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axios from "../utils/axiosConfig";
 import CreateGroupModal from "./CreateGroupModal";
 import GroupChatModal from "./GroupChatModal";
 import "./GroupsList.css";
@@ -123,7 +123,10 @@ function GroupsList() {
       {selectedGroup && (
         <GroupChatModal
           group={selectedGroup}
-          onClose={() => setSelectedGroup(null)}
+          onClose={() => {
+            setSelectedGroup(null);
+            fetchGroups();
+          }}
         />
       )}
     </div>

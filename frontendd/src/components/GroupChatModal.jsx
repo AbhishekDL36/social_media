@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import axios from "../utils/axiosConfig";
 import "./GroupChatModal.css";
 
 function GroupChatModal({ group, onClose }) {
@@ -7,6 +7,9 @@ function GroupChatModal({ group, onClose }) {
   const [messageText, setMessageText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [showAddMembers, setShowAddMembers] = useState(false);
+  const [friendsList, setFriendsList] = useState([]);
+  const [groupData, setGroupData] = useState(group);
   const messagesEndRef = useRef(null);
   const currentUserId = sessionStorage.getItem("userId");
 
@@ -82,6 +85,43 @@ function GroupChatModal({ group, onClose }) {
     });
   };
 
+  const handleLoadFriends = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get("/api/users/friends/list", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const nonMembers = response.data.filter(
+        (f) => !groupData.members.some(m => String(m._id) === String(f._id))
+      );
+      setFriendsList(nonMembers);
+      setShowAddMembers(true);
+    } catch (err) {
+      console.error("Error loading friends:", err);
+      alert("Failed to load friends");
+    }
+  };
+
+  const handleAddMember = async (friendId) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      await axios.post(
+        `/api/groups/${groupData._id}/members`,
+        { userId: friendId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Refresh group data
+      const response = await axios.get(`/api/groups/${groupData._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setGroupData(response.data);
+      setFriendsList(friendsList.filter(f => f._id !== friendId));
+    } catch (err) {
+      console.error("Error adding member:", err);
+      alert(err.response?.data?.message || "Failed to add member");
+    }
+  };
+
   if (loading)
     return (
       <div className="modal-overlay" onClick={onClose}>
@@ -99,20 +139,27 @@ function GroupChatModal({ group, onClose }) {
           <div className="chat-info">
             <img
               src={
-                group.profilePicture ||
+                groupData.profilePicture ||
                 "https://via.placeholder.com/40?text=Group"
               }
-              alt={group.name}
+              alt={groupData.name}
               className="group-avatar"
             />
             <div>
-              <h3>{group.name}</h3>
-              <p className="member-count">{group.members.length} members</p>
+              <h3>{groupData.name}</h3>
+              <p className="member-count">{groupData.members.length} members</p>
             </div>
           </div>
-          <button onClick={onClose} className="close-btn">
-            ✕
-          </button>
+          <div className="header-actions">
+            {String(groupData.creator._id) === currentUserId && (
+              <button onClick={handleLoadFriends} className="add-member-btn" title="Add members">
+                ➕
+              </button>
+            )}
+            <button onClick={onClose} className="close-btn">
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -181,6 +228,48 @@ function GroupChatModal({ group, onClose }) {
             {sending ? "..." : "Send"}
           </button>
         </form>
+
+        {/* Add Members Modal */}
+        {showAddMembers && (
+          <div className="add-members-overlay" onClick={() => setShowAddMembers(false)}>
+            <div className="add-members-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Add Members</h3>
+                <button 
+                  onClick={() => setShowAddMembers(false)} 
+                  className="close-btn"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="friends-list-container">
+                {friendsList.length === 0 ? (
+                  <p className="no-friends">All your friends are already members!</p>
+                ) : (
+                  <div className="friends-list">
+                    {friendsList.map((friend) => (
+                      <div key={friend._id} className="friend-item">
+                        <img
+                          src={friend.profilePicture || "https://via.placeholder.com/32"}
+                          alt={friend.username}
+                          className="friend-avatar"
+                        />
+                        <span className="friend-name">{friend.username}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleAddMember(friend._id)}
+                          className="add-btn"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

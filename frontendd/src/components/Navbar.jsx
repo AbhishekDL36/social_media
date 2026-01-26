@@ -67,7 +67,6 @@ function Navbar({ toggleTheme, theme, onLogout }) {
           <button onClick={() => navigate('/follow-requests')} className="nav-link">Requests</button>
           <button onClick={() => navigate('/messages')} className="nav-link messages-link">
             Messages
-            {unreadMessages > 0 && <span className="badge">{unreadMessages}</span>}
           </button>
           <button onClick={() => {
             navigate('/notifications')

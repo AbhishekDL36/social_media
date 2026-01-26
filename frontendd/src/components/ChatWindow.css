@@ -125,11 +125,13 @@
   border-radius: 18px;
   font-size: 14px;
   line-height: 1.4;
+  word-wrap: break-word;
+  display: inline-block;
 }
 
 .message.sent p {
-  background-color: var(--accent-blue);
-  color: white;
+  background-color: var(--accent-blue) !important;
+  color: white !important;
 }
 
 .message.received p {
