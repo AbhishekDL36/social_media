@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Post = require('../models/Post');
 const SavedPost = require('../models/SavedPost');
 const Notification = require('../models/Notification');
@@ -27,7 +28,7 @@ router.get('/', protect, async (req, res) => {
       .limit(limit)
       .populate('author', 'username profilePicture')
       .populate('comments.author', 'username')
-      .lean();
+      .populate('comments.replies.author', 'username profilePicture');
     
     const total = await Post.countDocuments({ author: { $in: followingIds } });
 
@@ -51,7 +52,8 @@ router.get('/user/:userId', async (req, res) => {
     const posts = await Post.find({ author: req.params.userId })
       .sort({ createdAt: -1 })
       .populate('author', 'username profilePicture')
-      .populate('comments.author', 'username');
+      .populate('comments.author', 'username')
+      .populate('comments.replies.author', 'username profilePicture');
     
     res.json(posts);
   } catch (err) {
@@ -64,7 +66,8 @@ router.get('/:id', protect, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
       .populate('author', 'username profilePicture')
-      .populate('comments.author', 'username');
+      .populate('comments.author', 'username')
+      .populate('comments.replies.author', 'username profilePicture');
     
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
@@ -395,6 +398,168 @@ router.get('/:postId/is-saved', protect, async (req, res) => {
     });
 
     res.json({ saved: !!saved });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Edit post
+router.put('/:id', protect, async (req, res) => {
+  try {
+    const { caption } = req.body;
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if user is post author
+    if (post.author.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    post.caption = caption || post.caption;
+    post.updatedAt = Date.now();
+    await post.save();
+    await post.populate('author', 'username profilePicture');
+
+    res.json(post);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Delete post
+router.delete('/:id', protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if user is post author
+    if (post.author.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    await Post.findByIdAndDelete(req.params.id);
+    await SavedPost.deleteMany({ post: req.params.id });
+    await Notification.deleteMany({ post: req.params.id });
+
+    res.json({ message: 'Post deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Add reply to comment
+router.post('/:postId/comment/:commentIdx/reply', protect, async (req, res) => {
+  try {
+    const { text } = req.body;
+    const post = await Post.findById(req.params.postId);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const commentIdx = parseInt(req.params.commentIdx);
+    const comment = post.comments[commentIdx];
+    
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    if (!comment.replies) {
+      comment.replies = [];
+    }
+
+    const reply = {
+      _id: new mongoose.Types.ObjectId(),
+      author: req.userId,
+      text,
+      likes: [],
+      createdAt: Date.now()
+    };
+
+    comment.replies.push(reply);
+    await post.save();
+
+    // Populate the reply author
+    await post.populate('comments.replies.author', 'username profilePicture');
+
+    // Get the newly added reply with populated author
+    const savedReply = comment.replies[comment.replies.length - 1];
+    res.status(201).json(savedReply);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Delete reply
+router.delete('/:postId/comment/:commentIdx/reply/:replyId', protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const commentIdx = parseInt(req.params.commentIdx);
+    const comment = post.comments[commentIdx];
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    const reply = comment.replies.id(req.params.replyId);
+    if (!reply) {
+      return res.status(404).json({ message: 'Reply not found' });
+    }
+
+    // Check if user is reply author
+    if (reply.author.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    reply.deleteOne();
+    await post.save();
+
+    res.json({ message: 'Reply deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Like reply
+router.put('/:postId/comment/:commentIdx/reply/:replyId/like', protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const commentIdx = parseInt(req.params.commentIdx);
+    const comment = post.comments[commentIdx];
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    const reply = comment.replies.id(req.params.replyId);
+    if (!reply) {
+      return res.status(404).json({ message: 'Reply not found' });
+    }
+
+    const isLiking = !reply.likes.includes(req.userId);
+
+    if (isLiking) {
+      reply.likes.push(req.userId);
+    } else {
+      reply.likes = reply.likes.filter(id => id.toString() !== req.userId);
+    }
+
+    await post.save();
+    res.json(reply);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

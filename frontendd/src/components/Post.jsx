@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import axios from '../utils/axiosConfig'
 import LikersModal from './LikersModal'
 import ShareModal from './ShareModal'
 import ReactionPicker from './ReactionPicker'
@@ -14,7 +14,13 @@ function Post({ post, onPostUpdate }) {
   const [showLikersModal, setShowLikersModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editCaption, setEditCaption] = useState(post.caption || '')
+  const [replyingTo, setReplyingTo] = useState(null)
+  const [replyTexts, setReplyTexts] = useState({})
+  const [expandedComments, setExpandedComments] = useState({})
   const currentUserId = sessionStorage.getItem('userId')
+  const isPostAuthor = String(post.author?._id) === String(currentUserId)
 
   // Check if current user has reacted to this post and if saved
   useEffect(() => {
@@ -111,10 +117,99 @@ function Post({ post, onPostUpdate }) {
     }
   }
 
+  const handleEditPost = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      await axios.put(
+        `/api/posts/${post._id}`,
+        { caption: editCaption },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setIsEditing(false)
+      onPostUpdate()
+    } catch (err) {
+      console.error('Error editing post:', err)
+    }
+  }
+
+  const handleDeletePost = async () => {
+    if (!window.confirm('Delete this post?')) return
+    try {
+      const token = sessionStorage.getItem('token')
+      await axios.delete(
+        `/api/posts/${post._id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      onPostUpdate()
+    } catch (err) {
+      console.error('Error deleting post:', err)
+    }
+  }
+
+  const handleAddReply = async (commentIdx) => {
+    const replyText = replyTexts[commentIdx]
+    if (!replyText?.trim()) return
+    try {
+      const token = sessionStorage.getItem('token')
+      const comment = post.comments[commentIdx]
+      const commentId = comment._id || commentIdx
+      
+      await axios.post(
+        `/api/posts/${post._id}/comment/${commentId}/reply`,
+        { text: replyText },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setReplyingTo(null)
+      setReplyTexts({ ...replyTexts, [commentIdx]: '' })
+      onPostUpdate()
+    } catch (err) {
+      console.error('Error adding reply:', err)
+      alert('Failed to add reply: ' + (err.response?.data?.message || err.message))
+    }
+  }
+
+  const handleDeleteReply = async (commentId, replyId) => {
+    if (!window.confirm('Delete this reply?')) return
+    try {
+      const token = sessionStorage.getItem('token')
+      await axios.delete(
+        `/api/posts/${post._id}/comment/${commentId}/reply/${replyId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      onPostUpdate()
+    } catch (err) {
+      console.error('Error deleting reply:', err)
+    }
+  }
+
+  const handleLikeReply = async (commentId, replyId) => {
+    try {
+      const token = sessionStorage.getItem('token')
+      await axios.put(
+        `/api/posts/${post._id}/comment/${commentId}/reply/${replyId}/like`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      onPostUpdate()
+    } catch (err) {
+      console.error('Error liking reply:', err)
+    }
+  }
+
   return (
     <div className="post">
       <div className="post-header">
         <h3>{post.author?.username}</h3>
+        {isPostAuthor && (
+          <div className="post-actions-header">
+            <button onClick={() => setIsEditing(true)} className="edit-btn" title="Edit post">
+              ✏️
+            </button>
+            <button onClick={handleDeletePost} className="delete-btn" title="Delete post">
+              🗑️
+            </button>
+          </div>
+        )}
       </div>
       {post.mediaType === 'video' ? (
         <video src={post.media} controls className="post-media"></video>
@@ -158,20 +253,113 @@ function Post({ post, onPostUpdate }) {
        />
 
       <div className="post-caption">
-        <strong>{post.author?.username}</strong> {post.caption}
+        {isEditing ? (
+          <div className="edit-caption-form">
+            <textarea
+              value={editCaption}
+              onChange={(e) => setEditCaption(e.target.value)}
+              className="edit-caption-input"
+            />
+            <div className="edit-buttons">
+              <button onClick={handleEditPost} className="save-btn">Save</button>
+              <button onClick={() => setIsEditing(false)} className="cancel-btn">Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <strong>{post.author?.username}</strong> {post.caption}
+          </>
+        )}
       </div>
       <div className="post-comments">
          {post.comments?.map((com, idx) => (
-           <div key={idx} className="comment">
-             <div className="comment-text">
-               <strong>{com.author?.username}</strong> {com.text}
+           <div key={idx} className="comment-thread">
+             <div className="comment">
+               <div className="comment-text">
+                 <strong>{com.author?.username}</strong> {com.text}
+               </div>
+               <div className="comment-actions">
+                 <button
+                   onClick={() => handleCommentLike(idx)}
+                   className={`comment-like-btn ${com.likes?.some(id => String(id) === String(currentUserId)) ? 'liked' : ''}`}
+                 >
+                   {com.likes?.some(id => String(id) === String(currentUserId)) ? '❤️' : '♡'} {com.likes?.length || 0}
+                 </button>
+                 <button
+                   onClick={() => setReplyingTo(replyingTo === idx ? null : idx)}
+                   className="reply-btn"
+                 >
+                   Reply
+                 </button>
+               </div>
              </div>
-             <button
-               onClick={() => handleCommentLike(idx)}
-               className={`comment-like-btn ${com.likes?.some(id => String(id) === String(currentUserId)) ? 'liked' : ''}`}
-             >
-               {com.likes?.some(id => String(id) === String(currentUserId)) ? '❤️' : '♡'} {com.likes?.length || 0}
-             </button>
+
+             {/* Show/Hide Replies Button */}
+             {com.replies && com.replies.length > 0 && (
+               <button
+                 onClick={() => setExpandedComments({ ...expandedComments, [idx]: !expandedComments[idx] })}
+                 className="show-replies-btn"
+               >
+                 {expandedComments[idx] ? '▼ Hide' : '▶ View'} {com.replies.length} {com.replies.length === 1 ? 'reply' : 'replies'}
+               </button>
+             )}
+
+             {/* Replies */}
+             {expandedComments[idx] && com.replies && com.replies.map((reply) => (
+               <div key={reply._id} className="reply">
+                 <div className="reply-text">
+                   <strong>{reply.author?.username}</strong> {reply.text}
+                 </div>
+                 <div className="reply-actions">
+                   <button
+                     onClick={() => handleLikeReply(idx, reply._id)}
+                     className={`reply-like-btn ${reply.likes?.some(id => String(id) === String(currentUserId)) ? 'liked' : ''}`}
+                   >
+                     {reply.likes?.some(id => String(id) === String(currentUserId)) ? '❤️' : '♡'} {reply.likes?.length || 0}
+                   </button>
+                   {String(reply.author?._id) === currentUserId && (
+                     <button
+                       onClick={() => handleDeleteReply(idx, reply._id)}
+                       className="delete-reply-btn"
+                     >
+                       Delete
+                     </button>
+                   )}
+                 </div>
+               </div>
+             ))}
+
+             {/* Reply Input */}
+             {replyingTo === idx && (
+               <div className="reply-input-form">
+                 <input
+                   type="text"
+                   placeholder="Write a reply..."
+                   value={replyTexts[idx] || ''}
+                   onChange={(e) => setReplyTexts({ ...replyTexts, [idx]: e.target.value })}
+                   className="reply-input"
+                   onKeyPress={(e) => {
+                     if (e.key === 'Enter' && replyTexts[idx]?.trim()) {
+                       handleAddReply(idx)
+                     }
+                   }}
+                 />
+                 <button
+                   onClick={() => handleAddReply(idx)}
+                   disabled={!replyTexts[idx]?.trim()}
+                   className="reply-submit-btn"
+                 >
+                   Reply
+                 </button>
+                 <button
+                   type="button"
+                   onClick={() => setReplyingTo(null)}
+                   className="reply-cancel-btn"
+                 >
+                   Cancel
+                 </button>
+               </div>
+             )}
            </div>
          ))}
        </div>
