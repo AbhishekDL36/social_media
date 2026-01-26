@@ -138,4 +138,86 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Send OTP for password reset
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    if (!validateEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'Email not registered' });
+    }
+
+    const otp = generateOTP();
+    
+    // Delete any existing OTP for this email
+    await OTP.deleteMany({ email });
+    
+    // Save new OTP with purpose
+    await OTP.create({ email, otp, purpose: 'password_reset' });
+
+    // Send OTP to email
+    const sent = await sendOTP(email, otp);
+    
+    if (!sent) {
+      return res.status(500).json({ message: 'Failed to send OTP' });
+    }
+
+    res.json({ message: 'OTP sent to email', email });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Reset password with OTP
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ message: 'Email, OTP, and new password required' });
+    }
+
+    if (!validateEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    if (!validatePassword(newPassword)) {
+      return res.status(400).json({ 
+        message: 'Password must be at least 8 characters with uppercase, lowercase, number and special character (@$!%*?&)' 
+      });
+    }
+
+    // Verify OTP
+    const otpDoc = await OTP.findOne({ email, otp });
+    if (!otpDoc) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    // Find user and update password
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    // Delete OTP after successful password reset
+    await OTP.deleteOne({ _id: otpDoc._id });
+
+    res.json({ message: 'Password reset successful' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

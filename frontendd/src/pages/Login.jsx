@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from '../utils/axiosConfig'
+import ForgotPasswordModal from '../components/ForgotPasswordModal'
 import './Auth.css'
 
 function Login({ setUser }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
@@ -35,20 +38,51 @@ function Login({ setUser }) {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="password-input-wrapper">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+              title={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
           <button type="submit">Log in</button>
-        </form>
-        {error && <p className="error">{error}</p>}
-        <p>Don't have an account? <Link to="/register">Sign up</Link></p>
-      </div>
-    </div>
-  )
-}
+          </form>
+          {error && <p className="error">{error}</p>}
+          <p>
+           <button
+             type="button"
+             onClick={() => {
+               if (!email) {
+                 setError('Please enter your email first')
+                 return
+               }
+               setShowForgotPassword(true)
+             }}
+             className="forgot-password-btn"
+           >
+             Forgot password?
+           </button>
+          </p>
+          <p>Don't have an account? <Link to="/register">Sign up</Link></p>
+          </div>
 
-export default Login
+          <ForgotPasswordModal
+          isOpen={showForgotPassword}
+          onClose={() => setShowForgotPassword(false)}
+          initialEmail={email}
+          />
+          </div>
+          )
+          }
+
+          export default Login
