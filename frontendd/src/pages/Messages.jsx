@@ -237,7 +237,7 @@ function Messages() {
                         />
                         <div className="conversation-info">
                           <h4>{conv.user.username}</h4>
-                          <p>{conv.lastMessage.substring(0, 40)}...</p>
+                          <p>{conv.lastMessage ? conv.lastMessage.substring(0, 40) + '...' : '🎙️ Voice message'}</p>
                         </div>
                         {conv.unreadCount > 0 && (
                           <span className="unread-badge">{conv.unreadCount}</span>

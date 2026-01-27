@@ -13,7 +13,20 @@ const messageSchema = new mongoose.Schema({
   },
   text: {
     type: String,
-    required: true
+    default: null
+  },
+  messageType: {
+    type: String,
+    enum: ['text', 'voice'],
+    default: 'text'
+  },
+  voiceUrl: {
+    type: String,
+    default: null
+  },
+  voiceDuration: {
+    type: Number,
+    default: null
   },
   read: {
     type: Boolean,

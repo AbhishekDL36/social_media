@@ -9,12 +9,18 @@ function ChatWindow({ user, onBack }) {
   const [loading, setLoading] = useState(true)
   const [isTyping, setIsTyping] = useState(false)
   const [otherUserTyping, setOtherUserTyping] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [recordingTime, setRecordingTime] = useState(0)
+  const [isSendingVoice, setIsSendingVoice] = useState(false)
   const messagesEndRef = useRef(null)
   const messagesListRef = useRef(null)
   const initialLoadRef = useRef(true)
   const currentUserId = sessionStorage.getItem('userId')
   const socketRef = useRef(null)
   const typingTimeoutRef = useRef(null)
+  const mediaRecorderRef = useRef(null)
+  const audioChunksRef = useRef([])
+  const recordingIntervalRef = useRef(null)
 
   // Initialize Socket.io
   useEffect(() => {
@@ -206,6 +212,87 @@ function ChatWindow({ user, onBack }) {
     }
   }
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mediaRecorder = new MediaRecorder(stream)
+      mediaRecorderRef.current = mediaRecorder
+      audioChunksRef.current = []
+      let time = 0
+
+      mediaRecorder.ondataavailable = (e) => {
+        audioChunksRef.current.push(e.data)
+      }
+
+      mediaRecorder.start()
+      setIsRecording(true)
+      setRecordingTime(0)
+
+      recordingIntervalRef.current = setInterval(() => {
+        time += 1
+        setRecordingTime(time)
+      }, 1000)
+    } catch (err) {
+      console.error('Error accessing microphone:', err)
+      alert('Unable to access microphone')
+    }
+  }
+
+  const stopRecording = async () => {
+    return new Promise((resolve) => {
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        clearInterval(recordingIntervalRef.current)
+        setIsRecording(false)
+        resolve(audioBlob)
+      }
+      mediaRecorderRef.current.stop()
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop())
+    })
+  }
+
+  const handleSendVoiceMessage = async () => {
+    const audioBlob = await stopRecording()
+    
+    if (audioBlob.size === 0) {
+      alert('Recording is empty')
+      return
+    }
+
+    setIsSendingVoice(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('voiceMessage', audioBlob, 'voice-message.webm')
+      formData.append('duration', recordingTime)
+
+      const token = sessionStorage.getItem('token')
+      const response = await axios.post(
+        `/api/messages/send-voice/${user._id}`,
+        formData,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      )
+      setMessages([...messages, response.data])
+      scrollToBottomSmooth()
+    } catch (err) {
+      console.error('Error sending voice message:', err)
+      alert('Error sending voice message')
+    } finally {
+      setIsSendingVoice(false)
+    }
+  }
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
   // Update online status
   useEffect(() => {
     const updateStatus = async () => {
@@ -258,7 +345,17 @@ function ChatWindow({ user, onBack }) {
                 </div>
               )}
               <div className="message-content">
-                <p className={msg.deleted ? 'deleted-text' : ''}>{msg.deleted ? 'This message was deleted' : msg.text}</p>
+                {msg.messageType === 'voice' ? (
+                  <div className="voice-message">
+                    <audio controls className="voice-player">
+                      <source src={msg.voiceUrl} type="audio/webm" />
+                      Your browser does not support the audio element.
+                    </audio>
+                    <span className="voice-duration">🎙️ {formatTime(msg.voiceDuration)}</span>
+                  </div>
+                ) : (
+                  <p className={msg.deleted ? 'deleted-text' : ''}>{msg.deleted ? 'This message was deleted' : msg.text}</p>
+                )}
                 {!msg.deleted && (
                   <button
                     onClick={() => handleMessageLike(msg._id)}
@@ -295,15 +392,54 @@ function ChatWindow({ user, onBack }) {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSendMessage} className="message-input">
-        <input
-          type="text"
-          placeholder="Type a message..."
-          value={input}
-          onChange={handleInputChange}
-        />
-        <button type="submit">Send</button>
-      </form>
+      <div className="message-input-area">
+        {isRecording ? (
+          <div className="recording-controls">
+            <div className="recording-indicator">
+              <span className="recording-dot"></span>
+              Recording... {formatTime(recordingTime)}
+            </div>
+            <button
+              type="button"
+              onClick={handleSendVoiceMessage}
+              disabled={isSendingVoice}
+              className="send-voice-btn"
+            >
+              {isSendingVoice ? 'Sending...' : '✓ Send'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                clearInterval(recordingIntervalRef.current)
+                mediaRecorderRef.current?.stop()
+                mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop())
+                setIsRecording(false)
+              }}
+              className="cancel-voice-btn"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSendMessage} className="message-input">
+            <input
+              type="text"
+              placeholder="Type a message..."
+              value={input}
+              onChange={handleInputChange}
+            />
+            <button
+              type="button"
+              onClick={startRecording}
+              className="voice-record-btn"
+              title="Record voice message"
+            >
+              🎙️
+            </button>
+            <button type="submit">Send</button>
+          </form>
+        )}
+      </div>
     </div>
   )
 }
