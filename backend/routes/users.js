@@ -161,8 +161,7 @@ router.put('/me/profile', protect, upload.single('profilePicture'), async (req, 
 
     // Update profile picture if file is uploaded
     if (req.file) {
-      const backendURL = process.env.BACKEND_URL || 'https://social-media-7b30.onrender.com';
-      user.profilePicture = `${backendURL}/uploads/${req.file.filename}`;
+      user.profilePicture = req.file.path; // Cloudinary provides the full URL
     }
 
     await user.save();

@@ -73,8 +73,7 @@ router.post('/send-voice/:recipientId', protect, upload.single('voiceMessage'), 
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const backendURL = process.env.BACKEND_URL || 'https://social-media-7b30.onrender.com';
-    const voiceUrl = `${backendURL}/uploads/${req.file.filename}`;
+    const voiceUrl = req.file.path; // Cloudinary provides the full URL
     const voiceDuration = parseFloat(duration) || 0;
 
     const message = new Message({

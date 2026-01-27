@@ -21,8 +21,7 @@ router.post('/', protect, upload.single('media'), async (req, res) => {
 
     // Determine media type
     const mediaType = req.file.mimetype.startsWith('image/') ? 'image' : 'video';
-    const backendURL = process.env.BACKEND_URL || 'https://social-media-7b30.onrender.com';
-    const mediaPath = `${backendURL}/uploads/${req.file.filename}`;
+    const mediaPath = req.file.path; // Cloudinary provides the full URL
 
     const story = new Story({
       author: req.userId,
