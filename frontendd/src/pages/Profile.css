@@ -39,6 +39,20 @@
   color: var(--text-secondary);
 }
 
+.relationship-status {
+  margin: 12px 0 !important;
+  color: #e74c3c !important;
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.heart-icon {
+  font-size: 18px;
+}
+
 .stats {
   display: flex;
   gap: 20px;

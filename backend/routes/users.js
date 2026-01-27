@@ -60,19 +60,27 @@ router.get('/mentions/:query', protect, async (req, res) => {
 router.get('/search/:query', protect, async (req, res) => {
   try {
     const { query } = req.params;
+    const { relationshipStatus } = req.query;
     
     if (!query || query.length < 2) {
       return res.status(400).json({ message: 'Search query must be at least 2 characters' });
     }
 
-    const users = await User.find({
+    let filter = {
       _id: { $ne: req.userId },
       $or: [
         { username: { $regex: query, $options: 'i' } },
         { email: { $regex: query, $options: 'i' } }
       ]
-    })
-    .select('_id username email profilePicture bio followers')
+    };
+
+    // Add relationship status filter if provided and not "all"
+    if (relationshipStatus && relationshipStatus !== 'all') {
+      filter.relationshipStatus = relationshipStatus;
+    }
+
+    const users = await User.find(filter)
+    .select('_id username email profilePicture bio relationshipStatus followers')
     .limit(20);
 
     res.json(users);
@@ -84,7 +92,7 @@ router.get('/search/:query', protect, async (req, res) => {
 // Get user profile
 router.get('/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password').populate('followers following', 'username profilePicture');
+    const user = await User.findById(req.params.id).select('-password').populate('followers following', 'username profilePicture relationshipStatus');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     res.json(user);
@@ -93,10 +101,10 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Update profile (bio and profile picture)
+// Update profile (bio, profile picture, and relationship status)
 router.put('/me/profile', protect, upload.single('profilePicture'), async (req, res) => {
   try {
-    const { bio } = req.body;
+    const { bio, relationshipStatus } = req.body;
     const user = await User.findById(req.userId);
 
     if (!user) {
@@ -106,6 +114,11 @@ router.put('/me/profile', protect, upload.single('profilePicture'), async (req, 
     // Update bio if provided
     if (bio !== undefined) {
       user.bio = bio;
+    }
+
+    // Update relationship status if provided
+    if (relationshipStatus !== undefined) {
+      user.relationshipStatus = relationshipStatus;
     }
 
     // Update profile picture if file is uploaded
@@ -123,6 +136,7 @@ router.put('/me/profile', protect, upload.single('profilePicture'), async (req, 
         email: user.email,
         bio: user.bio,
         profilePicture: user.profilePicture,
+        relationshipStatus: user.relationshipStatus,
         isPrivate: user.isPrivate
       }
     });

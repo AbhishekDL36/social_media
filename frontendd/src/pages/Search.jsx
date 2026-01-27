@@ -9,6 +9,7 @@ function messageUser(userId, navigate) {
 
 function Search() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [relationshipFilter, setRelationshipFilter] = useState('all')
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -26,7 +27,11 @@ function Search() {
     setLoading(true)
     try {
       const token = sessionStorage.getItem('token')
-      const response = await axios.get(`/api/users/search/${searchQuery}`, {
+      let url = `/api/users/search/${searchQuery}`
+      if (relationshipFilter !== 'all') {
+        url += `?relationshipStatus=${relationshipFilter}`
+      }
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setUsers(response.data)
@@ -40,18 +45,29 @@ function Search() {
   return (
     <div className="search-container">
       <div className="search-box">
-        <h2>Search Friends</h2>
-        <form onSubmit={handleSearch}>
-          <input
-            type="text"
-            placeholder="Search by username or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button type="submit" disabled={loading}>{loading ? 'Searching...' : 'Search'}</button>
-        </form>
-        {error && <p className="error">{error}</p>}
-      </div>
+         <h2>Search Friends</h2>
+         <form onSubmit={handleSearch}>
+           <input
+             type="text"
+             placeholder="Search by username or email..."
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+           />
+           <select
+             className="relationship-filter"
+             value={relationshipFilter}
+             onChange={(e) => setRelationshipFilter(e.target.value)}
+           >
+             <option value="all">All Status</option>
+             <option value="single">Single</option>
+             <option value="married">Married</option>
+             <option value="divorced">Divorced</option>
+             <option value="prefer not to say">Prefer not to say</option>
+           </select>
+           <button type="submit" disabled={loading}>{loading ? 'Searching...' : 'Search'}</button>
+         </form>
+         {error && <p className="error">{error}</p>}
+       </div>
 
       <div className="search-results">
         {users.length > 0 ? (
@@ -63,11 +79,16 @@ function Search() {
               >
                 {user.profilePicture && <img src={user.profilePicture} alt={user.username} />}
                 <div className="user-info">
-                  <h3>{user.username}</h3>
-                  <p>{user.email}</p>
-                  {user.bio && <p className="bio">{user.bio}</p>}
-                  <p className="followers">{user.followers?.length || 0} followers</p>
-                </div>
+                   <h3>{user.username}</h3>
+                   <p>{user.email}</p>
+                   {user.bio && <p className="bio">{user.bio}</p>}
+                   {user.relationshipStatus && user.relationshipStatus !== 'prefer not to say' && (
+                     <p className="relationship-status-badge">
+                       💑 {user.relationshipStatus.charAt(0).toUpperCase() + user.relationshipStatus.slice(1)}
+                     </p>
+                   )}
+                   <p className="followers">{user.followers?.length || 0} followers</p>
+                 </div>
               </div>
               <button
                 className="message-btn-search"

@@ -13,6 +13,7 @@ function Settings({ theme, toggleTheme }) {
   const [bio, setBio] = useState('')
   const [profilePicture, setProfilePicture] = useState(null)
   const [profilePicturePreview, setProfilePicturePreview] = useState(null)
+  const [relationshipStatus, setRelationshipStatus] = useState('')
 
   useEffect(() => {
     fetchUserData()
@@ -31,6 +32,7 @@ function Settings({ theme, toggleTheme }) {
       setUser(response.data)
       setIsPrivate(response.data.isPrivate)
       setBio(response.data.bio || '')
+      setRelationshipStatus(response.data.relationshipStatus || 'prefer not to say')
       setProfilePicturePreview(response.data.profilePicture)
       setLoading(false)
     } catch (err) {
@@ -85,6 +87,7 @@ function Settings({ theme, toggleTheme }) {
       const token = sessionStorage.getItem('token')
       const formData = new FormData()
       formData.append('bio', bio)
+      formData.append('relationshipStatus', relationshipStatus)
       if (profilePicture) {
         formData.append('profilePicture', profilePicture)
       }
@@ -198,6 +201,21 @@ function Settings({ theme, toggleTheme }) {
               className="bio-textarea"
             />
             <p className="char-count">{bio.length}/150</p>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="relationshipStatus">Relationship Status</label>
+            <select
+              id="relationshipStatus"
+              value={relationshipStatus}
+              onChange={(e) => setRelationshipStatus(e.target.value)}
+              className="relationship-select"
+            >
+              <option value="single">Single</option>
+              <option value="married">Married</option>
+              <option value="divorced">Divorced</option>
+              <option value="prefer not to say">Prefer not to say</option>
+            </select>
           </div>
 
           <button type="submit" disabled={saving} className="save-btn">

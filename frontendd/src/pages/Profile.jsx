@@ -162,6 +162,11 @@ function Profile() {
             {user.isPrivate && <span className="private-badge">🔒 Private</span>}
           </div>
           <p>{user.bio}</p>
+          {user.relationshipStatus && user.relationshipStatus !== 'prefer not to say' && (
+            <p className="relationship-status">
+              <span className="heart-icon">💑</span> {user.relationshipStatus.charAt(0).toUpperCase() + user.relationshipStatus.slice(1)}
+            </p>
+          )}
           <div className="stats">
             <div><strong>{posts.length}</strong> Posts</div>
             <div

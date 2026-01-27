@@ -22,6 +22,11 @@ const userSchema = new mongoose.Schema({
   },
   bio: String,
   profilePicture: String,
+  relationshipStatus: {
+    type: String,
+    enum: ['single', 'married', 'divorced', 'prefer not to say'],
+    default: 'prefer not to say'
+  },
   followers: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
