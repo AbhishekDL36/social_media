@@ -1,22 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './App.css'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
-import Profile from './pages/Profile'
-import Search from './pages/Search'
-import Notifications from './pages/Notifications'
-import FollowRequests from './pages/FollowRequests'
-import Settings from './pages/Settings'
-import PostDetail from './pages/PostDetail'
-import FollowersList from './pages/FollowersList'
-import Messages from './pages/Messages'
-import SavedPosts from './pages/SavedPosts'
-import Hashtag from './pages/Hashtag'
-import GroupsList from './components/GroupsList'
 import Navbar from './components/Navbar'
 import NetworkError from './components/NetworkError'
+
+// Lazy load pages for better performance
+const Profile = lazy(() => import('./pages/Profile'))
+const Search = lazy(() => import('./pages/Search'))
+const Notifications = lazy(() => import('./pages/Notifications'))
+const FollowRequests = lazy(() => import('./pages/FollowRequests'))
+const Settings = lazy(() => import('./pages/Settings'))
+const PostDetail = lazy(() => import('./pages/PostDetail'))
+const FollowersList = lazy(() => import('./pages/FollowersList'))
+const Messages = lazy(() => import('./pages/Messages'))
+const SavedPosts = lazy(() => import('./pages/SavedPosts'))
+const Hashtag = lazy(() => import('./pages/Hashtag'))
+const GroupsList = lazy(() => import('./components/GroupsList'))
+
+// Loading component
+const PageLoader = () => <div style={{padding: '40px', textAlign: 'center'}}>Loading...</div>
 
 function App() {
   const [user, setUser] = useState(null)
@@ -55,19 +60,19 @@ function App() {
          <Route path="/login" element={<Login setUser={setUser} />} />
          <Route path="/register" element={<Register setUser={setUser} />} />
          <Route path="/" element={user ? <Home /> : <Login setUser={setUser} />} />
-         <Route path="/profile" element={user ? <Profile /> : <Login setUser={setUser} />} />
-         <Route path="/profile/:id" element={user ? <Profile /> : <Login setUser={setUser} />} />
-         <Route path="/search" element={user ? <Search /> : <Login setUser={setUser} />} />
-         <Route path="/notifications" element={user ? <Notifications /> : <Login setUser={setUser} />} />
-         <Route path="/follow-requests" element={user ? <FollowRequests /> : <Login setUser={setUser} />} />
-         <Route path="/settings" element={user ? <Settings theme={theme} toggleTheme={toggleTheme} /> : <Login setUser={setUser} />} />
-         <Route path="/post/:postId" element={user ? <PostDetail /> : <Login setUser={setUser} />} />
-         <Route path="/followers/:userId/:type" element={user ? <FollowersList /> : <Login setUser={setUser} />} />
-         <Route path="/messages" element={user ? <Messages /> : <Login setUser={setUser} />} />
-         <Route path="/messages/:userId" element={user ? <Messages /> : <Login setUser={setUser} />} />
-         <Route path="/groups" element={user ? <GroupsList /> : <Login setUser={setUser} />} />
-         <Route path="/saved" element={user ? <SavedPosts /> : <Login setUser={setUser} />} />
-         <Route path="/hashtag/:hashtag" element={user ? <Hashtag /> : <Login setUser={setUser} />} />
+         <Route path="/profile" element={user ? <Suspense fallback={<PageLoader />}><Profile /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/profile/:id" element={user ? <Suspense fallback={<PageLoader />}><Profile /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/search" element={user ? <Suspense fallback={<PageLoader />}><Search /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/notifications" element={user ? <Suspense fallback={<PageLoader />}><Notifications /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/follow-requests" element={user ? <Suspense fallback={<PageLoader />}><FollowRequests /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/settings" element={user ? <Suspense fallback={<PageLoader />}><Settings theme={theme} toggleTheme={toggleTheme} /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/post/:postId" element={user ? <Suspense fallback={<PageLoader />}><PostDetail /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/followers/:userId/:type" element={user ? <Suspense fallback={<PageLoader />}><FollowersList /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/messages" element={user ? <Suspense fallback={<PageLoader />}><Messages /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/messages/:userId" element={user ? <Suspense fallback={<PageLoader />}><Messages /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/groups" element={user ? <Suspense fallback={<PageLoader />}><GroupsList /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/saved" element={user ? <Suspense fallback={<PageLoader />}><SavedPosts /></Suspense> : <Login setUser={setUser} />} />
+         <Route path="/hashtag/:hashtag" element={user ? <Suspense fallback={<PageLoader />}><Hashtag /></Suspense> : <Login setUser={setUser} />} />
          </Routes>
     </Router>
   )

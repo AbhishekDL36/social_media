@@ -7,15 +7,12 @@ const axiosInstance = axios.create({
   withCredentials: true // Send credentials with requests
 })
 
-// Add request interceptor to log requests
+// Add request interceptor to attach token
 axiosInstance.interceptors.request.use(
   config => {
     const token = sessionStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-      console.log(`📤 Requesting: ${config.method.toUpperCase()} ${config.baseURL}${config.url} [Token: ${token.substring(0, 20)}...]`)
-    } else {
-      console.warn(`⚠️ No token found! Request will be unauthorized: ${config.method.toUpperCase()} ${config.url}`)
     }
     return config
   },
@@ -24,12 +21,8 @@ axiosInstance.interceptors.request.use(
 
 // Add response interceptor for error handling
 axiosInstance.interceptors.response.use(
-  response => {
-    console.log(`📥 Response: ${response.status} ${response.config.url}`)
-    return response
-  },
+  response => response,
   error => {
-    console.error(`❌ Error: ${error.response?.status || 'Network'} ${error.config?.url}`, error.message)
     if (!error.response) {
       // Network error or timeout
       if (error.code === 'ECONNABORTED') {

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import axios from 'axios'
+import axios from '../utils/axiosConfig'
 import './StoryUploader.css'
 
 function StoryUploader({ onStoryAdded, onClose, isOpen: externalIsOpen, setIsOpen: externalSetIsOpen }) {

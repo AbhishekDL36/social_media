@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import axios from '../utils/axiosConfig'
 import './SavedPosts.css'
 import Post from '../components/Post'
 
