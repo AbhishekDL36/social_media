@@ -82,7 +82,7 @@ function Register({ setUser }) {
   return (
     <div className="auth-container">
       <div className="auth-box">
-        <h1>Instagram Clone</h1>
+        <h1>Socialix</h1>
 
         {step === 'credentials' && (
           <form onSubmit={handleSendOTP}>

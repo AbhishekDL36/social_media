@@ -61,7 +61,7 @@ function Navbar({ toggleTheme, theme, onLogout }) {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <h1 onClick={() => navigate('/')} className="logo">Instagram Clone</h1>
+        <h1 onClick={() => navigate('/')} className="logo">Socialix</h1>
         <div className="nav-links">
           <button onClick={() => navigate('/')} className="nav-link">Feed</button>
           <button onClick={() => navigate('/search')} className="nav-link">Search</button>

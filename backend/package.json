@@ -1,7 +1,7 @@
 {
-  "name": "instagram-clone-backend",
+  "name": "socialix-backend",
   "version": "1.0.0",
-  "description": "Instagram clone backend",
+  "description": "Socialix - Social Media Platform Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

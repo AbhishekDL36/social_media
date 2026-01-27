@@ -22,7 +22,7 @@ const sendOTP = async (email, otp) => {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Instagram Clone - Email Verification OTP',
+      subject: 'Socialix - Email Verification OTP',
       html: `
         <h2>Email Verification</h2>
         <p>Your OTP for email verification is:</p>
