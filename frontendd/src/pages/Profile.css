@@ -20,9 +20,33 @@
   gap: 10px;
 }
 
+.username-with-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
 .profile-info h1 {
   font-size: 32px;
   margin: 0;
+}
+
+.online-status {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.online-status.online {
+  color: #31a24c;
+  background-color: rgba(49, 162, 76, 0.1);
 }
 
 .private-badge {

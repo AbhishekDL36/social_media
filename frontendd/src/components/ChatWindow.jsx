@@ -12,6 +12,7 @@ function ChatWindow({ user, onBack }) {
   const [isRecording, setIsRecording] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
   const [isSendingVoice, setIsSendingVoice] = useState(false)
+  const [userStatus, setUserStatus] = useState(null)
   const messagesEndRef = useRef(null)
   const messagesListRef = useRef(null)
   const initialLoadRef = useRef(true)
@@ -66,9 +67,14 @@ function ChatWindow({ user, onBack }) {
     initialLoadRef.current = true
     fetchMessages()
     markNotificationsAsRead()
+    fetchUserStatus()
     // Refresh messages every 2 seconds for real-time feel
     const interval = setInterval(fetchMessages, 2000)
-    return () => clearInterval(interval)
+    const statusInterval = setInterval(fetchUserStatus, 30000)
+    return () => {
+      clearInterval(interval)
+      clearInterval(statusInterval)
+    }
   }, [user._id])
 
   // Only scroll on initial load or when user sends a message
@@ -120,6 +126,15 @@ function ChatWindow({ user, onBack }) {
       }
     } catch (err) {
       console.error('Error marking notifications as read:', err)
+    }
+  }
+
+  const fetchUserStatus = async () => {
+    try {
+      const response = await axios.get(`/api/users/${user._id}/status`)
+      setUserStatus(response.data)
+    } catch (err) {
+      console.error('Error fetching user status:', err)
     }
   }
 
@@ -315,7 +330,14 @@ function ChatWindow({ user, onBack }) {
     <div className="chat-window">
       <div className="chat-header">
         <button onClick={onBack} className="back-btn">← Back</button>
-        <h3>{user.username}</h3>
+        <div className="chat-header-info">
+          <h3>{user.username}</h3>
+          {userStatus && (
+            <span className={`chat-status ${userStatus.isOnline ? 'online' : 'offline'}`}>
+              {userStatus.isOnline ? '🟢' : '⚫'} {userStatus.status}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="messages-list">

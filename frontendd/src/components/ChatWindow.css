@@ -40,11 +40,31 @@
   }
 }
 
+.chat-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
 .chat-header h3 {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.chat-status {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-status.online {
+  color: #31a24c;
+  font-weight: 500;
 }
 
 .messages-list {

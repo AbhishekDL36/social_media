@@ -15,6 +15,7 @@ function Profile() {
   const [error, setError] = useState('')
   const [requestSent, setRequestSent] = useState(false)
   const [activeFilter, setActiveFilter] = useState('all') // all, images, reels
+  const [userStatus, setUserStatus] = useState(null)
   const currentUserId = sessionStorage.getItem('userId')
   const isOwnProfile = currentUserId === id
 
@@ -39,6 +40,10 @@ function Profile() {
   useEffect(() => {
     fetchUserProfile()
     fetchUserPosts()
+    fetchUserStatus()
+    // Refresh status every 30 seconds
+    const interval = setInterval(fetchUserStatus, 30000)
+    return () => clearInterval(interval)
   }, [id])
 
   const fetchUserProfile = async () => {
@@ -74,6 +79,15 @@ function Profile() {
       setPosts(response.data)
     } catch (err) {
       console.error('Error fetching posts:', err)
+    }
+  }
+
+  const fetchUserStatus = async () => {
+    try {
+      const response = await axios.get(`/api/users/${id}/status`)
+      setUserStatus(response.data)
+    } catch (err) {
+      console.error('Error fetching user status:', err)
     }
   }
 
@@ -158,7 +172,14 @@ function Profile() {
       <div className="profile-header">
         <div className="profile-info">
           <div className="username-section">
-            <h1>{user.username}</h1>
+            <div className="username-with-status">
+              <h1>{user.username}</h1>
+              {userStatus && (
+                <span className={`online-status ${userStatus.isOnline ? 'online' : 'offline'}`}>
+                  {userStatus.isOnline ? '🟢' : '⚫'} {userStatus.status}
+                </span>
+              )}
+            </div>
             {user.isPrivate && <span className="private-badge">🔒 Private</span>}
           </div>
           <p>{user.bio}</p>

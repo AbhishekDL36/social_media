@@ -28,6 +28,7 @@ function Messages() {
   const [sharedWithUsers, setSharedWithUsers] = useState([]) // Users I've shared with
   const [view, setView] = useState('chats') // 'chats', 'requests', or 'shared'
   const [loading, setLoading] = useState(true)
+  const [userStatuses, setUserStatuses] = useState({})
   const navigate = useNavigate()
   const { userId } = useParams()
 
@@ -69,6 +70,18 @@ function Messages() {
         headers: { Authorization: `Bearer ${token}` }
       })
       setConversations(response.data)
+      
+      // Fetch status for all users in conversations
+      const statuses = {}
+      for (const conv of response.data) {
+        try {
+          const statusRes = await axios.get(`/api/users/${conv.user._id}/status`)
+          statuses[conv.user._id] = statusRes.data
+        } catch (err) {
+          console.error('Error fetching status for user:', conv.user._id)
+        }
+      }
+      setUserStatuses(statuses)
       setLoading(false)
     } catch (err) {
       console.error('Error fetching conversations:', err)
@@ -222,28 +235,38 @@ function Messages() {
                 {conversations.length > 0 && (
                   <>
                     <div className="conversations-section-header">💬 Direct Messages</div>
-                    {conversations.map((conv) => (
-                      <div
-                        key={`user-${conv.user._id}`}
-                        className={`conversation-item ${selectedUser?._id === conv.user._id ? 'active' : ''}`}
-                        onClick={() => {
-                          setSelectedUser(conv.user)
-                          setSelectedGroup(null)
-                        }}
-                      >
-                        <img
-                          src={conv.user.profilePicture || 'https://via.placeholder.com/40'}
-                          alt={conv.user.username}
-                        />
-                        <div className="conversation-info">
-                          <h4>{conv.user.username}</h4>
-                          <p>{conv.lastMessage ? conv.lastMessage.substring(0, 40) + '...' : '🎙️ Voice message'}</p>
+                    {conversations.map((conv) => {
+                      const status = userStatuses[conv.user._id]
+                      return (
+                        <div
+                          key={`user-${conv.user._id}`}
+                          className={`conversation-item ${selectedUser?._id === conv.user._id ? 'active' : ''}`}
+                          onClick={() => {
+                            setSelectedUser(conv.user)
+                            setSelectedGroup(null)
+                          }}
+                        >
+                          <div className="avatar-wrapper">
+                            <img
+                              src={conv.user.profilePicture || 'https://via.placeholder.com/40'}
+                              alt={conv.user.username}
+                            />
+                            {status && (
+                              <span className={`avatar-status ${status.isOnline ? 'online' : ''}`}>
+                                {status.isOnline ? '🟢' : '⚫'}
+                              </span>
+                            )}
+                          </div>
+                          <div className="conversation-info">
+                            <h4>{conv.user.username}</h4>
+                            <p>{conv.lastMessage ? conv.lastMessage.substring(0, 40) + '...' : '🎙️ Voice message'}</p>
+                          </div>
+                          {conv.unreadCount > 0 && (
+                            <span className="unread-badge">{conv.unreadCount}</span>
+                          )}
                         </div>
-                        {conv.unreadCount > 0 && (
-                          <span className="unread-badge">{conv.unreadCount}</span>
-                        )}
-                      </div>
-                    ))}
+                      )
+                    })}
                   </>
                 )}
               </div>

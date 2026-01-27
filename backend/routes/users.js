@@ -22,6 +22,44 @@ router.put('/update-status', protect, async (req, res) => {
   }
 });
 
+// Get user online status and last active time
+router.get('/:id/status', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('lastActive');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const lastActive = user.lastActive;
+    const now = new Date();
+    const minutesAgo = Math.floor((now - lastActive) / 60000);
+    
+    let isOnline = false;
+    let status = '';
+
+    if (minutesAgo < 5) {
+      isOnline = true;
+      status = 'active now';
+    } else if (minutesAgo < 60) {
+      status = `${minutesAgo}m ago`;
+    } else if (minutesAgo < 1440) { // less than 24 hours
+      const hoursAgo = Math.floor(minutesAgo / 60);
+      status = `${hoursAgo}h ago`;
+    } else {
+      const daysAgo = Math.floor(minutesAgo / 1440);
+      status = `${daysAgo}d ago`;
+    }
+
+    res.json({
+      isOnline,
+      lastActive,
+      status
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get user's friends (following list)
 router.get('/friends/list', protect, async (req, res) => {
   try {
