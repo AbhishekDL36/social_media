@@ -5,7 +5,7 @@ import PostThumbnail from '../components/PostThumbnail'
 import './Profile.css'
 
 function Profile() {
-  const { id } = useParams()
+  const { id: paramId } = useParams()
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [posts, setPosts] = useState([])
@@ -17,6 +17,7 @@ function Profile() {
   const [activeFilter, setActiveFilter] = useState('all') // all, images, reels
   const [userStatus, setUserStatus] = useState(null)
   const currentUserId = sessionStorage.getItem('userId')
+  const id = paramId || currentUserId // Use current user's ID if no param provided
   const isOwnProfile = currentUserId === id
 
   const canViewFollowersFollowing = () => {

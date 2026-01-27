@@ -55,6 +55,7 @@ function App() {
          <Route path="/login" element={<Login setUser={setUser} />} />
          <Route path="/register" element={<Register setUser={setUser} />} />
          <Route path="/" element={user ? <Home /> : <Login setUser={setUser} />} />
+         <Route path="/profile" element={user ? <Profile /> : <Login setUser={setUser} />} />
          <Route path="/profile/:id" element={user ? <Profile /> : <Login setUser={setUser} />} />
          <Route path="/search" element={user ? <Search /> : <Login setUser={setUser} />} />
          <Route path="/notifications" element={user ? <Notifications /> : <Login setUser={setUser} />} />
