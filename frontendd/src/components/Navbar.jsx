@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import axios from '../utils/axiosConfig'
 import './Navbar.css'
 import StoryUploader from './StoryUploader'
 import NotificationCenter from './NotificationCenter'

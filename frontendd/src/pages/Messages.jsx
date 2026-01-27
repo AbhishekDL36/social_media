@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import axios from '../utils/axiosConfig'
 import { useNavigate, useParams } from 'react-router-dom'
 import './Messages.css'
 import ChatWindow from '../components/ChatWindow'
