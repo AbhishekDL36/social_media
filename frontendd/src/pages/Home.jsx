@@ -5,6 +5,7 @@ import Post from '../components/Post'
 import Stories from '../components/Stories'
 import StoryUploader from '../components/StoryUploader'
 import PeopleYouMayKnow from '../components/PeopleYouMayKnow'
+import DateTimePicker from '../components/DateTimePicker'
 
 function Home() {
   const [posts, setPosts] = useState([])
@@ -17,6 +18,10 @@ function Home() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
   const [networkError, setNetworkError] = useState(false)
+  const [schedulePost, setSchedulePost] = useState(false)
+  const [scheduledTime, setScheduledTime] = useState('')
+  const [showScheduled, setShowScheduled] = useState(false)
+  const [scheduledPosts, setScheduledPosts] = useState([])
 
   useEffect(() => {
     fetchPosts()
@@ -66,6 +71,21 @@ function Home() {
       return
     }
 
+    if (schedulePost) {
+      if (!scheduledTime || scheduledTime.trim() === '') {
+        setError('Please select a date and time to schedule the post')
+        return
+      }
+      
+      const selectedDateTime = new Date(scheduledTime)
+      const now = new Date()
+      
+      if (selectedDateTime <= now) {
+        setError('Please select a future date and time')
+        return
+      }
+    }
+
     setLoading(true)
     setError('')
     try {
@@ -73,6 +93,9 @@ function Home() {
       const formData = new FormData()
       formData.append('caption', caption)
       formData.append('media', media)
+      if (schedulePost) {
+        formData.append('scheduledTime', scheduledTime)
+      }
 
       const response = await axios.post('/api/posts', formData, {
         headers: {
@@ -80,14 +103,64 @@ function Home() {
           'Content-Type': 'multipart/form-data'
         }
       })
-      setPosts([response.data, ...posts])
+      
+      if (schedulePost) {
+        alert(`Post scheduled for ${new Date(scheduledTime).toLocaleString()}`)
+        fetchScheduledPosts()
+      } else {
+        setPosts([response.data.post || response.data, ...posts])
+      }
+      
       setCaption('')
       setMedia(null)
       setPreview(null)
+      setSchedulePost(false)
+      setScheduledTime('')
     } catch (err) {
       setError(err.response?.data?.message || 'Error creating post')
     }
     setLoading(false)
+  }
+
+  const fetchScheduledPosts = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const response = await axios.get('/api/posts/scheduled/list', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setScheduledPosts(response.data)
+    } catch (err) {
+      console.error('Error fetching scheduled posts:', err)
+    }
+  }
+
+  const handlePublishNow = async (postId) => {
+    try {
+      const token = sessionStorage.getItem('token')
+      await axios.put(`/api/posts/${postId}/publish`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      alert('Post published!')
+      fetchScheduledPosts()
+      fetchPosts(page)
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error publishing post')
+    }
+  }
+
+  const handleCancelSchedule = async (postId) => {
+    if (confirm('Delete this scheduled post?')) {
+      try {
+        const token = sessionStorage.getItem('token')
+        await axios.delete(`/api/posts/${postId}/schedule`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        alert('Scheduled post deleted')
+        fetchScheduledPosts()
+      } catch (err) {
+        alert(err.response?.data?.message || 'Error deleting post')
+      }
+    }
   }
 
   const handleStoryAdded = () => {
@@ -100,7 +173,57 @@ function Home() {
       <StoryUploader onStoryAdded={handleStoryAdded} />
       
       <div className="create-post">
-        <h2>Create a Post</h2>
+        <div className="post-header">
+          <h2>Create a Post</h2>
+          <button 
+            type="button"
+            className="scheduled-posts-btn"
+            onClick={() => {
+              setShowScheduled(!showScheduled)
+              if (!showScheduled) fetchScheduledPosts()
+            }}
+          >
+            📅 Scheduled ({scheduledPosts.length})
+          </button>
+        </div>
+
+        {showScheduled && (
+          <div className="scheduled-posts-section">
+            <h3>Your Scheduled Posts</h3>
+            {scheduledPosts.length === 0 ? (
+              <p className="empty">No scheduled posts</p>
+            ) : (
+              <div className="scheduled-list">
+                {scheduledPosts.map(post => (
+                  <div key={post._id} className="scheduled-item">
+                    {post.media && <img src={post.media} alt="Post" className="scheduled-thumbnail" />}
+                    <div className="scheduled-info">
+                      <p className="scheduled-caption">{post.caption.substring(0, 50)}...</p>
+                      <p className="scheduled-time">
+                        📅 {new Date(post.scheduledTime).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="scheduled-actions">
+                      <button 
+                        onClick={() => handlePublishNow(post._id)}
+                        className="publish-btn"
+                      >
+                        Publish Now
+                      </button>
+                      <button 
+                        onClick={() => handleCancelSchedule(post._id)}
+                        className="cancel-btn"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <form onSubmit={handleCreatePost}>
           <textarea
             placeholder="Write a caption..."
@@ -141,8 +264,31 @@ function Home() {
             </div>
           )}
 
+          <div className="schedule-options">
+            <label className="schedule-checkbox">
+              <input
+                type="checkbox"
+                checked={schedulePost}
+                onChange={(e) => {
+                  setSchedulePost(e.target.checked)
+                  setScheduledTime('')
+                }}
+              />
+              📅 Schedule this post
+            </label>
+            {schedulePost && (
+              <DateTimePicker
+                value={scheduledTime}
+                onChange={setScheduledTime}
+                min={new Date().toISOString().slice(0, 16)}
+              />
+            )}
+          </div>
+
           {error && <p className="error-message">{error}</p>}
-          <button type="submit" disabled={loading}>{loading ? 'Posting...' : 'Post'}</button>
+          <button type="submit" disabled={loading}>
+            {loading ? (schedulePost ? 'Scheduling...' : 'Posting...') : (schedulePost ? 'Schedule Post' : 'Post')}
+          </button>
         </form>
       </div>
 

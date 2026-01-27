@@ -12,10 +12,33 @@
   margin-bottom: 20px;
 }
 
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
 .create-post h2 {
   font-size: 16px;
-  margin-bottom: 15px;
   font-weight: 600;
+  margin: 0;
+}
+
+.scheduled-posts-btn {
+  background-color: #f0f0f0;
+  color: #262626;
+  border: 1px solid #dbdbdb;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.scheduled-posts-btn:hover {
+  background-color: #e0e0e0;
 }
 
 .create-post form {
@@ -111,6 +134,122 @@
 .remove-media-btn:hover {
   background-color: #c4314f;
 }
+
+.scheduled-posts-section {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.scheduled-posts-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.scheduled-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scheduled-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background-color: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  align-items: center;
+}
+
+.scheduled-thumbnail {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.scheduled-info {
+  flex: 1;
+}
+
+.scheduled-caption {
+  font-size: 13px;
+  margin: 0 0 5px 0;
+  color: #262626;
+  font-weight: 500;
+}
+
+.scheduled-time {
+  font-size: 12px;
+  margin: 0;
+  color: #999;
+}
+
+.scheduled-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.publish-btn,
+.cancel-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.publish-btn {
+  background-color: #31a24c;
+  color: white;
+}
+
+.publish-btn:hover {
+  background-color: #2a8641;
+}
+
+.cancel-btn {
+  background-color: #f0f0f0;
+  color: #262626;
+  border: 1px solid #dbdbdb;
+}
+
+.cancel-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.schedule-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.schedule-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.schedule-checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  margin: 0;
+}
+
+
 
 .error-message {
   color: #ed4956;

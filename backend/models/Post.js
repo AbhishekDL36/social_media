@@ -91,6 +91,19 @@ const postSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  // Post Scheduling
+  isScheduled: {
+    type: Boolean,
+    default: false
+  },
+  scheduledTime: {
+    type: Date,
+    default: null
+  },
+  isPublished: {
+    type: Boolean,
+    default: true
   }
 });
 

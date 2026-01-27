@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const socketIO = require('socket.io');
+const { startScheduler } = require('./utils/scheduler');
 require('dotenv').config();
 
 const app = express();
@@ -32,7 +33,11 @@ app.use('/uploads', express.static(uploadsDir));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB connected'))
+  .then(() => {
+    console.log('MongoDB connected');
+    // Start the scheduler after database connection
+    startScheduler();
+  })
   .catch(err => console.log('MongoDB connection error:', err));
 
 // Routes

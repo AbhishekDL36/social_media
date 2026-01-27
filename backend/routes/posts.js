@@ -47,10 +47,23 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+// Get user's scheduled posts
+router.get('/scheduled/list', protect, async (req, res) => {
+  try {
+    const posts = await Post.find({ author: req.userId, isScheduled: true })
+      .sort({ scheduledTime: 1 })
+      .populate('author', 'username profilePicture');
+    
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get user's posts by user ID
 router.get('/user/:userId', async (req, res) => {
   try {
-    const posts = await Post.find({ author: req.params.userId })
+    const posts = await Post.find({ author: req.params.userId, isPublished: true })
       .sort({ createdAt: -1 })
       .populate('author', 'username profilePicture')
       .populate('comments.author', 'username')
@@ -96,13 +109,24 @@ router.get('/:id/likes', protect, async (req, res) => {
   }
 });
 
-// Create post with file upload
+// Create post with file upload (with optional scheduling)
 router.post('/', protect, upload.single('media'), async (req, res) => {
   try {
-    const { caption } = req.body;
+    const { caption, scheduledTime } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Validate scheduled time if provided
+    let isScheduled = false;
+    let schedTime = null;
+    if (scheduledTime) {
+      schedTime = new Date(scheduledTime);
+      if (schedTime <= new Date()) {
+        return res.status(400).json({ message: 'Scheduled time must be in the future' });
+      }
+      isScheduled = true;
     }
 
     // Determine media type
@@ -125,25 +149,33 @@ router.post('/', protect, upload.single('media'), async (req, res) => {
       caption,
       hashtags,
       media: mediaPath,
-      mediaType
+      mediaType,
+      isScheduled,
+      scheduledTime: schedTime,
+      isPublished: !isScheduled  // If scheduled, don't publish immediately
     });
 
     await post.save();
     await post.populate('author', 'username profilePicture');
 
-    // Create or update hashtag documents
-    for (const tag of hashtags) {
-      await Hashtag.findOneAndUpdate(
-        { name: tag },
-        {
-          $addToSet: { posts: post._id },
-          $inc: { postCount: 1 }
-        },
-        { upsert: true, new: true }
-      );
+    // Create or update hashtag documents (only if not scheduled)
+    if (!isScheduled) {
+      for (const tag of hashtags) {
+        await Hashtag.findOneAndUpdate(
+          { name: tag },
+          {
+            $addToSet: { posts: post._id },
+            $inc: { postCount: 1 }
+          },
+          { upsert: true, new: true }
+        );
+      }
     }
 
-    res.status(201).json(post);
+    res.status(201).json({
+      post,
+      message: isScheduled ? `Post scheduled for ${schedTime.toLocaleString()}` : 'Post created successfully'
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -707,6 +739,80 @@ router.put('/:postId/comment/:commentIdx/reply/:replyId/like', protect, async (r
 
     await post.save();
     res.json(reply);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Publish scheduled post
+router.put('/:id/publish', protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    // Only author can publish their scheduled post
+    if (String(post.author) !== req.userId) {
+      return res.status(403).json({ message: 'You can only publish your own posts' });
+    }
+    
+    if (!post.isScheduled) {
+      return res.status(400).json({ message: 'Post is not scheduled' });
+    }
+    
+    // Update hashtags
+    const Hashtag = require('../models/Hashtag');
+    for (const tag of post.hashtags) {
+      await Hashtag.findOneAndUpdate(
+        { name: tag },
+        {
+          $addToSet: { posts: post._id },
+          $inc: { postCount: 1 }
+        },
+        { upsert: true, new: true }
+      );
+    }
+    
+    post.isScheduled = false;
+    post.isPublished = true;
+    post.createdAt = new Date();  // Reset creation time to now
+    await post.save();
+    
+    await post.populate('author', 'username profilePicture');
+    
+    res.json({
+      post,
+      message: 'Post published successfully'
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Cancel scheduled post
+router.delete('/:id/schedule', protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    // Only author can cancel their scheduled post
+    if (String(post.author) !== req.userId) {
+      return res.status(403).json({ message: 'You can only cancel your own posts' });
+    }
+    
+    if (!post.isScheduled) {
+      return res.status(400).json({ message: 'Post is not scheduled' });
+    }
+    
+    // Delete the post
+    await Post.findByIdAndDelete(req.params.id);
+    
+    res.json({ message: 'Scheduled post cancelled and deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
