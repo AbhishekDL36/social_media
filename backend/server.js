@@ -42,6 +42,43 @@ app.use(cors({
 app.use(express.json());
 app.use('/uploads', express.static(uploadsDir));
 
+// Fix media URLs for old posts (convert relative paths to absolute)
+app.use((req, res, next) => {
+  const originalJson = res.json;
+  res.json = function(data) {
+    const backendURL = process.env.BACKEND_URL || 'https://social-media-7b30.onrender.com';
+    
+    // Recursively fix media URLs
+    const fixUrls = (obj) => {
+      if (obj === null || obj === undefined) return obj;
+      
+      if (typeof obj === 'object') {
+        if (Array.isArray(obj)) {
+          return obj.map(fixUrls);
+        }
+        
+        const fixed = {};
+        for (const [key, value] of Object.entries(obj)) {
+          if ((key === 'media' || key === 'voiceUrl' || key === 'profilePicture' || key === 'storyMedia') && 
+              typeof value === 'string' && value.startsWith('/uploads/')) {
+            fixed[key] = backendURL + value;
+          } else if (typeof value === 'object') {
+            fixed[key] = fixUrls(value);
+          } else {
+            fixed[key] = value;
+          }
+        }
+        return fixed;
+      }
+      return obj;
+    };
+    
+    const fixedData = fixUrls(data);
+    return originalJson.call(this, fixedData);
+  };
+  next();
+});
+
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
