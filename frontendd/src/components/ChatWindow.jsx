@@ -26,7 +26,7 @@ function ChatWindow({ user, onBack }) {
   // Initialize Socket.io
   useEffect(() => {
     if (!socketRef.current) {
-      const socketURL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+      const socketURL = import.meta.env.VITE_API_URL || "https://social-media-7b30.onrender.com"
       console.log('Initializing Socket.io with URL:', socketURL)
       socketRef.current = io(socketURL, {
         reconnection: true,
