@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './Navbar.css'
 import StoryUploader from './StoryUploader'
+import NotificationCenter from './NotificationCenter'
 
 function Navbar({ toggleTheme, theme, onLogout }) {
   const navigate = useNavigate()
@@ -68,13 +69,7 @@ function Navbar({ toggleTheme, theme, onLogout }) {
           <button onClick={() => navigate('/messages')} className="nav-link messages-link">
             Messages
           </button>
-          <button onClick={() => {
-            navigate('/notifications')
-            setUnreadCount(0)
-          }} className="nav-link notifications-link">
-            Notifications
-            {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
-          </button>
+          <NotificationCenter />
           <button onClick={() => navigate('/groups')} className="nav-link">👥 Groups</button>
           <button onClick={() => navigate(`/profile/${userId}`)} className="nav-link">My Profile</button>
           <button 

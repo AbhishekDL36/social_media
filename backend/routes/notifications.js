@@ -9,10 +9,29 @@ router.get('/', protect, async (req, res) => {
   try {
     const notifications = await Notification.find({ recipient: req.userId })
       .populate('sender', 'username profilePicture')
+      .populate('post', '_id')
       .sort({ createdAt: -1 })
       .limit(50);
 
     res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get user's mention notifications only
+router.get('/mentions', protect, async (req, res) => {
+  try {
+    const mentions = await Notification.find({
+      recipient: req.userId,
+      type: 'mention'
+    })
+      .populate('sender', 'username profilePicture')
+      .populate('post', '_id')
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    res.json(mentions);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

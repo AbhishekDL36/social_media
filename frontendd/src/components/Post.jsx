@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from '../utils/axiosConfig'
 import LikersModal from './LikersModal'
 import ShareModal from './ShareModal'
 import ReactionPicker from './ReactionPicker'
 import ReactionDisplay from './ReactionDisplay'
+import MentionDropdown from './MentionDropdown'
+import MentionText from './MentionText'
 import './Post.css'
 
 function Post({ post, onPostUpdate }) {
@@ -19,6 +21,9 @@ function Post({ post, onPostUpdate }) {
   const [replyingTo, setReplyingTo] = useState(null)
   const [replyTexts, setReplyTexts] = useState({})
   const [expandedComments, setExpandedComments] = useState({})
+  const [showMentions, setShowMentions] = useState(null)
+  const [mentionQuery, setMentionQuery] = useState('')
+  const [mentionInputRef, setMentionInputRef] = useState(null)
   const currentUserId = sessionStorage.getItem('userId')
   const isPostAuthor = String(post.author?._id) === String(currentUserId)
 
@@ -196,6 +201,59 @@ function Post({ post, onPostUpdate }) {
     }
   }
 
+  const handleCommentChange = (e, commentIdx, isReply = false) => {
+    const value = e.target.value
+    
+    if (isReply) {
+      setReplyTexts({ ...replyTexts, [commentIdx]: value })
+    } else {
+      setComment(value)
+    }
+
+    // Check for mentions
+    const lastAtSymbol = value.lastIndexOf('@')
+    if (lastAtSymbol !== -1) {
+      const textAfterAt = value.substring(lastAtSymbol + 1)
+      // Allow @ followed by alphanumeric or empty (just typed @)
+      if (!textAfterAt.includes(' ') && textAfterAt.match(/^[a-zA-Z0-9_]*$/)) {
+        setShowMentions(isReply ? commentIdx : 'comment')
+        setMentionQuery(textAfterAt)
+      } else {
+        setShowMentions(null)
+        setMentionQuery('')
+      }
+    } else {
+      setShowMentions(null)
+      setMentionQuery('')
+    }
+  }
+
+  const handleMentionSelect = (user, commentIdx, isReply = false) => {
+    try {
+      const currentText = isReply ? (replyTexts[commentIdx] || '') : comment
+      const lastAtSymbol = currentText.lastIndexOf('@')
+      
+      if (lastAtSymbol === -1) {
+        console.error('@ symbol not found in text')
+        return
+      }
+      
+      const textBeforeAt = currentText.substring(0, lastAtSymbol)
+      const newText = `${textBeforeAt}@${user.username} `
+      
+      if (isReply) {
+        setReplyTexts({ ...replyTexts, [commentIdx]: newText })
+      } else {
+        setComment(newText)
+      }
+      
+      setShowMentions(null)
+      setMentionQuery('')
+    } catch (err) {
+      console.error('Error selecting mention:', err)
+    }
+  }
+
   return (
     <div className="post">
       <div className="post-header">
@@ -267,7 +325,7 @@ function Post({ post, onPostUpdate }) {
           </div>
         ) : (
           <>
-            <strong>{post.author?.username}</strong> {post.caption}
+            <strong>{post.author?.username}</strong> <MentionText text={post.caption} />
           </>
         )}
       </div>
@@ -276,7 +334,7 @@ function Post({ post, onPostUpdate }) {
            <div key={idx} className="comment-thread">
              <div className="comment">
                <div className="comment-text">
-                 <strong>{com.author?.username}</strong> {com.text}
+                 <strong>{com.author?.username}</strong> <MentionText text={com.text} />
                </div>
                <div className="comment-actions">
                  <button
@@ -308,7 +366,7 @@ function Post({ post, onPostUpdate }) {
              {expandedComments[idx] && com.replies && com.replies.map((reply) => (
                <div key={reply._id} className="reply">
                  <div className="reply-text">
-                   <strong>{reply.author?.username}</strong> {reply.text}
+                   <strong>{reply.author?.username}</strong> <MentionText text={reply.text} />
                  </div>
                  <div className="reply-actions">
                    <button
@@ -332,18 +390,27 @@ function Post({ post, onPostUpdate }) {
              {/* Reply Input */}
              {replyingTo === idx && (
                <div className="reply-input-form">
-                 <input
-                   type="text"
-                   placeholder="Write a reply..."
-                   value={replyTexts[idx] || ''}
-                   onChange={(e) => setReplyTexts({ ...replyTexts, [idx]: e.target.value })}
-                   className="reply-input"
-                   onKeyPress={(e) => {
-                     if (e.key === 'Enter' && replyTexts[idx]?.trim()) {
-                       handleAddReply(idx)
-                     }
-                   }}
-                 />
+                 <div style={{ position: 'relative', flex: 1 }}>
+                   <input
+                     type="text"
+                     placeholder="Write a reply... (use @ to mention)"
+                     value={replyTexts[idx] || ''}
+                     onChange={(e) => handleCommentChange(e, idx, true)}
+                     className="reply-input"
+                     onKeyPress={(e) => {
+                       if (e.key === 'Enter' && replyTexts[idx]?.trim()) {
+                         handleAddReply(idx)
+                       }
+                     }}
+                   />
+                   {showMentions === idx && mentionQuery.length >= 0 && (
+                     <MentionDropdown
+                       query={mentionQuery}
+                       onMentionSelect={(user) => handleMentionSelect(user, idx, true)}
+                       position={{ top: '100%', left: '0', marginTop: '4px' }}
+                     />
+                   )}
+                 </div>
                  <button
                    onClick={() => handleAddReply(idx)}
                    disabled={!replyTexts[idx]?.trim()}
@@ -364,12 +431,22 @@ function Post({ post, onPostUpdate }) {
          ))}
        </div>
       <form onSubmit={handleComment} className="comment-form">
-        <input
-          type="text"
-          placeholder="Add a comment..."
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-        />
+        <div style={{ position: 'relative', flex: 1 }}>
+          <input
+            ref={input => setMentionInputRef(input)}
+            type="text"
+            placeholder="Add a comment... (use @ to mention)"
+            value={comment}
+            onChange={(e) => handleCommentChange(e, null, false)}
+          />
+          {showMentions === 'comment' && mentionQuery.length >= 0 && (
+            <MentionDropdown
+              query={mentionQuery}
+              onMentionSelect={(user) => handleMentionSelect(user, null, false)}
+              position={{ top: '100%', left: '0', marginTop: '4px' }}
+            />
+          )}
+        </div>
         <button type="submit">Post</button>
       </form>
 

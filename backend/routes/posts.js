@@ -6,6 +6,7 @@ const Notification = require('../models/Notification');
 const { protect } = require('../middleware/auth');
 const upload = require('../config/multer');
 const { validateReaction, getReactionLabel } = require('../utils/reactions');
+const { processMentionsInComment } = require('../utils/mentions');
 
 const router = express.Router();
 
@@ -253,7 +254,10 @@ router.post('/:id/comment', protect, async (req, res) => {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
+    // Create comment with new ID
+    const commentId = new mongoose.Types.ObjectId();
     post.comments.push({
+      _id: commentId,
       author: req.userId,
       text
     });
@@ -268,10 +272,20 @@ router.post('/:id/comment', protect, async (req, res) => {
         sender: req.userId,
         type: 'comment',
         post: post._id,
+        comment: commentId,
         message: text
       });
       await notification.save();
     }
+
+    // Process mentions in comment
+    await processMentionsInComment(
+      text,
+      req.userId,
+      post._id,
+      commentId,
+      'comment'
+    );
 
     res.json(post);
   } catch (err) {
@@ -474,8 +488,9 @@ router.post('/:postId/comment/:commentIdx/reply', protect, async (req, res) => {
       comment.replies = [];
     }
 
+    const replyId = new mongoose.Types.ObjectId();
     const reply = {
-      _id: new mongoose.Types.ObjectId(),
+      _id: replyId,
       author: req.userId,
       text,
       likes: [],
@@ -490,6 +505,30 @@ router.post('/:postId/comment/:commentIdx/reply', protect, async (req, res) => {
 
     // Get the newly added reply with populated author
     const savedReply = comment.replies[comment.replies.length - 1];
+
+    // Create notification for comment author (only if not replying to own comment)
+    if (comment.author.toString() !== req.userId) {
+      const notification = new Notification({
+        recipient: comment.author,
+        sender: req.userId,
+        type: 'comment',
+        post: post._id,
+        comment: comment._id,
+        message: text,
+        mentionedIn: 'reply'
+      });
+      await notification.save();
+    }
+
+    // Process mentions in reply
+    await processMentionsInComment(
+      text,
+      req.userId,
+      post._id,
+      replyId,
+      'reply'
+    );
+
     res.status(201).json(savedReply);
   } catch (err) {
     res.status(500).json({ message: err.message });

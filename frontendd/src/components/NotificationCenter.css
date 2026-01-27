@@ -1,0 +1,275 @@
+.notification-center {
+  position: relative;
+}
+
+/* Bell Icon Button */
+.notification-bell {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  position: relative;
+  padding: 8px;
+  transition: transform 0.2s ease;
+}
+
+.notification-bell:hover {
+  transform: scale(1.1);
+}
+
+/* Badge for unread count */
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #ed4956;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Notification Panel */
+.notification-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 380px;
+  max-height: 600px;
+  background: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  margin-top: 8px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.notification-header {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.mark-all-read-btn {
+  background: none;
+  border: none;
+  color: #0095f6;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: opacity 0.2s;
+}
+
+.mark-all-read-btn:hover {
+  opacity: 0.8;
+}
+
+/* Filter Tabs */
+.notification-filters {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  overflow-x: auto;
+}
+
+.filter-btn {
+  background: none;
+  border: none;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+
+.filter-btn:hover {
+  color: #262626;
+}
+
+.filter-btn.active {
+  color: #0095f6;
+  border-bottom-color: #0095f6;
+}
+
+/* Notification List */
+.notification-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.notification-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+/* Notification Item */
+.notification-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.notification-item:hover {
+  background-color: #f9f9f9;
+}
+
+.notification-item.unread {
+  background-color: #f0f8ff;
+}
+
+.notification-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid #e0e0e0;
+}
+
+/* Notification Content */
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-text {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  color: #262626;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.notification-text strong {
+  color: #0095f6;
+  font-weight: 600;
+}
+
+.notification-quote {
+  margin: 4px 0;
+  font-size: 12px;
+  color: #999;
+  font-style: italic;
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notification-time {
+  margin: 4px 0 0 0;
+  font-size: 11px;
+  color: #999;
+}
+
+/* Status Indicator */
+.notification-status {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.mention-badge {
+  background-color: rgba(0, 149, 246, 0.1);
+  color: #0095f6;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ed4956;
+}
+
+/* Scrollbar */
+.notification-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .notification-panel {
+    width: calc(100vw - 32px);
+    max-height: 70vh;
+    right: 50%;
+    transform: translateX(50%);
+  }
+
+  .notification-filters {
+    gap: 4px;
+    padding: 8px 12px;
+  }
+
+  .filter-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+}

@@ -34,6 +34,28 @@ router.get('/friends/list', protect, async (req, res) => {
   }
 });
 
+// Search users for mentions
+router.get('/mentions/:query', protect, async (req, res) => {
+  try {
+    const { query } = req.params;
+    
+    if (!query || query.length < 1) {
+      return res.status(400).json({ message: 'Query too short' });
+    }
+
+    const users = await User.find({
+      _id: { $ne: req.userId },
+      username: { $regex: `^${query}`, $options: 'i' }
+    })
+    .select('_id username profilePicture')
+    .limit(10);
+
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Search users
 router.get('/search/:query', protect, async (req, res) => {
   try {
