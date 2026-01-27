@@ -161,7 +161,8 @@ router.put('/me/profile', protect, upload.single('profilePicture'), async (req, 
 
     // Update profile picture if file is uploaded
     if (req.file) {
-      user.profilePicture = `/uploads/${req.file.filename}`;
+      const backendURL = process.env.BACKEND_URL || 'https://social-media-7b30.onrender.com';
+      user.profilePicture = `${backendURL}/uploads/${req.file.filename}`;
     }
 
     await user.save();

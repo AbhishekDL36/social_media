@@ -17,7 +17,8 @@ router.post('/', protect, upload.single('profilePicture'), async (req, res) => {
       return res.status(400).json({ message: 'Group name is required' });
     }
 
-    const profilePicture = req.file ? `/uploads/${req.file.filename}` : null;
+    const backendURL = process.env.BACKEND_URL || 'https://social-media-7b30.onrender.com';
+    const profilePicture = req.file ? `${backendURL}/uploads/${req.file.filename}` : null;
 
     const group = new Group({
       name: name.trim(),
@@ -101,7 +102,10 @@ router.put('/:groupId', protect, upload.single('profilePicture'), async (req, re
     if (req.body.name) group.name = req.body.name.trim();
     if (req.body.description !== undefined) group.description = req.body.description;
     if (req.body.isPrivate !== undefined) group.isPrivate = req.body.isPrivate === 'true' || req.body.isPrivate === true;
-    if (req.file) group.profilePicture = `/uploads/${req.file.filename}`;
+    if (req.file) {
+      const backendURL = process.env.BACKEND_URL || 'https://social-media-7b30.onrender.com';
+      group.profilePicture = `${backendURL}/uploads/${req.file.filename}`;
+    }
 
     await group.save();
     await group.populate('creator', 'username profilePicture');
