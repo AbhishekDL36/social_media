@@ -1,17 +1,18 @@
 /**
- * Parse text and identify mentions
- * Returns array of {type: 'text'|'mention', content: string}
+ * Parse text and identify mentions and hashtags
+ * Returns array of {type: 'text'|'mention'|'hashtag', content: string}
  */
 export function parseMentions(text) {
   if (!text) return []
 
-  const mentionRegex = /@([a-zA-Z0-9_]+)/g
+  // Combined regex to match both @mentions and #hashtags
+  const tokenRegex = /(@[a-zA-Z0-9_]+|#\w+)/g
   const parts = []
   let lastIndex = 0
   let match
 
-  while ((match = mentionRegex.exec(text)) !== null) {
-    // Add text before mention
+  while ((match = tokenRegex.exec(text)) !== null) {
+    // Add text before token
     if (match.index > lastIndex) {
       parts.push({
         type: 'text',
@@ -19,13 +20,21 @@ export function parseMentions(text) {
       })
     }
 
-    // Add mention
-    parts.push({
-      type: 'mention',
-      content: match[0] // Includes the @
-    })
+    // Determine if it's a mention or hashtag
+    const token = match[0]
+    if (token.startsWith('@')) {
+      parts.push({
+        type: 'mention',
+        content: token
+      })
+    } else if (token.startsWith('#')) {
+      parts.push({
+        type: 'hashtag',
+        content: token
+      })
+    }
 
-    lastIndex = mentionRegex.lastIndex
+    lastIndex = tokenRegex.lastIndex
   }
 
   // Add remaining text

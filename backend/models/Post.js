@@ -7,6 +7,11 @@ const postSchema = new mongoose.Schema({
     required: true
   },
   caption: String,
+  hashtags: [{
+    type: String,
+    lowercase: true,
+    trim: true
+  }],
   media: {
     type: String,
     required: true

@@ -109,15 +109,39 @@ router.post('/', protect, upload.single('media'), async (req, res) => {
     const mediaType = req.file.mimetype.startsWith('image/') ? 'image' : 'video';
     const mediaPath = `/uploads/${req.file.filename}`;
 
+    // Extract hashtags from caption
+    const Hashtag = require('../models/Hashtag');
+    const extractHashtags = (text) => {
+      if (!text) return [];
+      const regex = /#\w+/g;
+      const matches = text.match(regex) || [];
+      return matches.map(tag => tag.slice(1).toLowerCase());
+    };
+
+    const hashtags = extractHashtags(caption);
+
     const post = new Post({
       author: req.userId,
       caption,
+      hashtags,
       media: mediaPath,
       mediaType
     });
 
     await post.save();
     await post.populate('author', 'username profilePicture');
+
+    // Create or update hashtag documents
+    for (const tag of hashtags) {
+      await Hashtag.findOneAndUpdate(
+        { name: tag },
+        {
+          $addToSet: { posts: post._id },
+          $inc: { postCount: 1 }
+        },
+        { upsert: true, new: true }
+      );
+    }
 
     res.status(201).json(post);
   } catch (err) {

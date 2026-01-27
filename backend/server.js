@@ -45,6 +45,7 @@ app.use('/api/messages', require('./routes/messages'));
 app.use('/api/shares', require('./routes/shares'));
 app.use('/api/stories', require('./routes/stories'));
 app.use('/api/groups', require('./routes/groups'));
+app.use('/api/hashtags', require('./routes/hashtags'));
 
 // Store active users
 const activeUsers = new Map();
