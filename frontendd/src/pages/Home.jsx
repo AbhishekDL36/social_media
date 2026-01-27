@@ -6,6 +6,7 @@ import Stories from '../components/Stories'
 import StoryUploader from '../components/StoryUploader'
 import PeopleYouMayKnow from '../components/PeopleYouMayKnow'
 import DateTimePicker from '../components/DateTimePicker'
+import { fixMediaUrls } from '../utils/imageHelper'
 
 function Home() {
   const [posts, setPosts] = useState([])
@@ -36,7 +37,8 @@ function Home() {
         params: { page: pageNum, limit: 10 },
         headers: { Authorization: `Bearer ${token}` }
       })
-      setPosts(response.data.posts)
+      const fixedPosts = response.data.posts.map(fixMediaUrls)
+      setPosts(fixedPosts)
       setTotalPages(response.data.pagination.pages)
       setPage(pageNum)
     } catch (err) {
