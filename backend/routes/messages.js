@@ -120,14 +120,14 @@ router.get('/conversation/:userId', protect, async (req, res) => {
       .populate('sender', 'username profilePicture')
       .populate('recipient', 'username profilePicture');
 
-    // Mark all received messages as read
+    // Mark all received messages as read with timestamp
     await Message.updateMany(
       {
         sender: otherUserId,
         recipient: req.userId,
         read: false
       },
-      { read: true }
+      { read: true, readAt: new Date() }
     );
 
     res.json(messages);
@@ -220,9 +220,11 @@ router.put('/:messageId/read', protect, async (req, res) => {
   try {
     const message = await Message.findByIdAndUpdate(
       req.params.messageId,
-      { read: true },
+      { read: true, readAt: new Date() },
       { new: true }
-    );
+    )
+      .populate('sender', 'username profilePicture')
+      .populate('recipient', 'username profilePicture');
 
     res.json(message);
   } catch (err) {
@@ -239,6 +241,32 @@ router.get('/unread/count', protect, async (req, res) => {
     });
 
     res.json({ unreadCount: count });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get read receipts for a conversation
+router.get('/receipts/:userId', protect, async (req, res) => {
+  try {
+    const otherUserId = req.params.userId;
+    
+    // Get all messages sent by current user to the other user with read status
+    const messages = await Message.find({
+      sender: req.userId,
+      recipient: otherUserId
+    })
+      .select('_id read readAt createdAt')
+      .sort({ createdAt: -1 });
+
+    const receipts = messages.map(msg => ({
+      messageId: msg._id,
+      isRead: msg.read,
+      readAt: msg.readAt,
+      sentAt: msg.createdAt
+    }));
+
+    res.json(receipts);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

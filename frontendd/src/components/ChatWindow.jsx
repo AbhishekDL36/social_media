@@ -398,6 +398,11 @@ function ChatWindow({ user, onBack }) {
               </div>
               <span className="timestamp">
                 {new Date(msg.createdAt).toLocaleTimeString()}
+                {msg.sender._id === currentUserId && (
+                  <span className="read-receipt" title={msg.readAt ? `Read at ${new Date(msg.readAt).toLocaleTimeString()}` : 'Not read'}>
+                    {msg.read ? '✓✓' : '✓'}
+                  </span>
+                )}
               </span>
             </div>
           ))
