@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 import './Settings.css'
 
 function Settings({ theme, toggleTheme }) {
-  const [user, setUser] = useState(null)
+   const navigate = useNavigate()
+   const [user, setUser] = useState(null)
   const [isPrivate, setIsPrivate] = useState(false)
   const [blockedUsers, setBlockedUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -159,6 +161,12 @@ function Settings({ theme, toggleTheme }) {
           >
             <span>🌙</span> Appearance
           </li>
+          <li 
+            className={activeTab === 'saved' ? 'active' : ''}
+            onClick={() => setActiveTab('saved')}
+          >
+            <span>📌</span> Saved Posts
+          </li>
           <li style={{ opacity: 0.5 }}>
             <span>🔔</span> Notifications
           </li>
@@ -291,6 +299,36 @@ function Settings({ theme, toggleTheme }) {
               <span className="slider"></span>
             </label>
           </div>
+        </div>
+        </>
+        )}
+
+        {activeTab === 'saved' && (
+        <>
+        <h2>Saved Posts</h2>
+        <div className="settings-section">
+          <div className="setting-item saved-posts-info">
+            <div className="setting-info">
+              <h4>View Your Saved Posts</h4>
+              <p>Access all the posts you've saved for later. Manage your personal collection of posts.</p>
+            </div>
+            <button 
+              onClick={() => navigate('/saved')}
+              className="view-saved-btn"
+            >
+              View Saved Posts →
+            </button>
+          </div>
+        </div>
+        <div className="settings-info">
+          <h4>About Saved Posts</h4>
+          <ul>
+            <li>📌 Save posts by clicking the save button on any post</li>
+            <li>🔒 Your saved posts are private and only visible to you</li>
+            <li>⏰ Posts are saved in chronological order (newest first)</li>
+            <li>🗑️ You can unsave posts anytime</li>
+            <li>💬 You can still interact with saved posts (comment, react)</li>
+          </ul>
         </div>
         </>
         )}

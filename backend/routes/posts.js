@@ -417,6 +417,90 @@ router.get('/:postId/is-saved', protect, async (req, res) => {
   }
 });
 
+// Save post
+router.post('/:postId/save', protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if already saved
+    const existingSave = await SavedPost.findOne({
+      user: req.userId,
+      post: req.params.postId
+    });
+
+    if (existingSave) {
+      return res.status(400).json({ message: 'Post already saved' });
+    }
+
+    const savedPost = new SavedPost({
+      user: req.userId,
+      post: req.params.postId
+    });
+
+    await savedPost.save();
+    res.status(201).json({ message: 'Post saved', saved: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Unsave post
+router.delete('/:postId/save', protect, async (req, res) => {
+  try {
+    const result = await SavedPost.findOneAndDelete({
+      user: req.userId,
+      post: req.params.postId
+    });
+
+    if (!result) {
+      return res.status(404).json({ message: 'Saved post not found' });
+    }
+
+    res.json({ message: 'Post unsaved', saved: false });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get user's saved posts
+router.get('/saved/list', protect, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const skip = (page - 1) * limit;
+
+    const savedPosts = await SavedPost.find({ user: req.userId })
+      .sort({ savedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: 'post',
+        populate: [
+          { path: 'author', select: 'username profilePicture' },
+          { path: 'comments.author', select: 'username' },
+          { path: 'comments.replies.author', select: 'username profilePicture' }
+        ]
+      });
+
+    const total = await SavedPost.countDocuments({ user: req.userId });
+
+    res.json({
+      posts: savedPosts.map(sp => sp.post),
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Edit post
 router.put('/:id', protect, async (req, res) => {
   try {

@@ -12,6 +12,7 @@ import Settings from './pages/Settings'
 import PostDetail from './pages/PostDetail'
 import FollowersList from './pages/FollowersList'
 import Messages from './pages/Messages'
+import SavedPosts from './pages/SavedPosts'
 import GroupsList from './components/GroupsList'
 import Navbar from './components/Navbar'
 import NetworkError from './components/NetworkError'
@@ -63,7 +64,8 @@ function App() {
          <Route path="/messages" element={user ? <Messages /> : <Login setUser={setUser} />} />
          <Route path="/messages/:userId" element={user ? <Messages /> : <Login setUser={setUser} />} />
          <Route path="/groups" element={user ? <GroupsList /> : <Login setUser={setUser} />} />
-        </Routes>
+         <Route path="/saved" element={user ? <SavedPosts /> : <Login setUser={setUser} />} />
+         </Routes>
     </Router>
   )
 }

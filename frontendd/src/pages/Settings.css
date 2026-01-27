@@ -400,6 +400,30 @@ input:disabled + .slider {
   cursor: not-allowed;
 }
 
+.saved-posts-info {
+  flex-direction: column !important;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.view-saved-btn {
+  background-color: var(--accent-blue);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  align-self: flex-start;
+}
+
+.view-saved-btn:hover {
+  background-color: var(--accent-blue-hover);
+  transform: translateX(2px);
+}
+
 @media (max-width: 768px) {
   .settings-container {
     flex-direction: column;
