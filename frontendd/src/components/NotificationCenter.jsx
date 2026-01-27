@@ -157,14 +157,23 @@ function NotificationCenter() {
           {/* Header */}
           <div className="notification-header">
             <h3>Notifications</h3>
-            {unreadCount > 0 && (
+            <div className="notification-header-buttons">
+              {unreadCount > 0 && (
+                <button
+                  className="mark-all-read-btn"
+                  onClick={markAllAsRead}
+                >
+                  Mark all as read
+                </button>
+              )}
               <button
-                className="mark-all-read-btn"
-                onClick={markAllAsRead}
+                className="close-notification-btn"
+                onClick={() => setShowNotifications(false)}
+                title="Close"
               >
-                Mark all as read
+                ✕
               </button>
-            )}
+            </div>
           </div>
 
           {/* Filter Tabs */}
