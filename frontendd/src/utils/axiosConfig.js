@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // Create axios instance
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  baseURL: import.meta.env.VITE_API_URL || 'https://social-media-7b30.onrender.com',
   timeout: 10000 // 10 second timeout
 })
 

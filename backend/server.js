@@ -14,7 +14,10 @@ const server = http.createServer(app);
 console.log('Initializing Socket.io...');
 const io = socketIO(server, {
   cors: {
-    origin: "*",
+    origin: [
+      "https://social-media-1-4649.onrender.com"
+    
+    ],
     methods: ["GET", "POST"]
   }
 });
@@ -27,7 +30,14 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://social-media-1-4649.onrender.com",
+    "http://localhost:5173",
+    "http://localhost:3000"
+  ],
+  credentials: true
+}));
 app.use(express.json());
 app.use('/uploads', express.static(uploadsDir));
 

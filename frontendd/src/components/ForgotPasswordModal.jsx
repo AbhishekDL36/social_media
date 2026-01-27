@@ -3,7 +3,7 @@ import axios from '../utils/axiosConfig'
 import './ForgotPasswordModal.css'
 
 function ForgotPasswordModal({ isOpen, onClose, initialEmail = '' }) {
-  const [step, setStep] = useState('email') // email, otp, newpassword
+  const [step, setStep] = useState('email') 
   const [email, setEmail] = useState(initialEmail)
   const [otp, setOtp] = useState('')
   const [newPassword, setNewPassword] = useState('')
