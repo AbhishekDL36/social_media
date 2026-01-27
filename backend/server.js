@@ -15,8 +15,9 @@ console.log('Initializing Socket.io...');
 const io = socketIO(server, {
   cors: {
     origin: [
-      "https://social-media-1-4649.onrender.com"
-    
+      "https://social-media-1-4649.onrender.com",
+      "http://localhost:5173",
+      "http://localhost:3000"
     ],
     methods: ["GET", "POST"]
   }

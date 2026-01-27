@@ -13,8 +13,10 @@ axiosInstance.interceptors.request.use(
     const token = sessionStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+      console.log(`📤 Requesting: ${config.method.toUpperCase()} ${config.baseURL}${config.url} [Token: ${token.substring(0, 20)}...]`)
+    } else {
+      console.warn(`⚠️ No token found! Request will be unauthorized: ${config.method.toUpperCase()} ${config.url}`)
     }
-    console.log(`📤 Requesting: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`)
     return config
   },
   error => Promise.reject(error)
