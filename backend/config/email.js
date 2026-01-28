@@ -1,26 +1,27 @@
 const nodemailer = require('nodemailer');
 
-// Check if email credentials are configured
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-  console.warn('WARNING: Email credentials not configured in .env file');
+// Check if Brevo credentials are configured
+if (!process.env.BREVO_SMTP_PASSWORD) {
+  console.warn('WARNING: BREVO_SMTP_PASSWORD not configured in .env file');
 }
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp-relay.brevo.com',
+  port: 587,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
+    user: 'a0f5b5001@smtp-brevo.com',
+    pass: process.env.BREVO_SMTP_PASSWORD
   }
 });
 
 const sendOTP = async (email, otp) => {
   try {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      throw new Error('Email service not configured. Set EMAIL_USER and EMAIL_PASSWORD in .env');
+    if (!process.env.BREVO_SMTP_PASSWORD) {
+      throw new Error('Brevo SMTP password not configured. Set BREVO_SMTP_PASSWORD in .env');
     }
 
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: 'noreply@socialix.com',
       to: email,
       subject: 'Socialix - Email Verification OTP',
       html: `
