@@ -1,37 +1,41 @@
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 
-// Check if Brevo credentials are configured
-if (!process.env.BREVO_SMTP_PASSWORD) {
-  console.warn('WARNING: BREVO_SMTP_PASSWORD not configured in .env file');
+// Check if Brevo API key is configured
+if (!process.env.BREVO_API_KEY) {
+  console.warn('WARNING: BREVO_API_KEY not configured in .env file');
 }
-
-const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 587,
-  auth: {
-    user: 'a0f5b5001@smtp-brevo.com',
-    pass: process.env.BREVO_SMTP_PASSWORD
-  }
-});
 
 const sendOTP = async (email, otp) => {
   try {
-    if (!process.env.BREVO_SMTP_PASSWORD) {
-      throw new Error('Brevo SMTP password not configured. Set BREVO_SMTP_PASSWORD in .env');
+    if (!process.env.BREVO_API_KEY) {
+      throw new Error('Brevo API key not configured. Set BREVO_API_KEY in .env');
     }
 
-    await transporter.sendMail({
-      from: 'noreply@socialix.com',
-      to: email,
+    await axios.post('https://api.brevo.com/v3/smtp/email', {
+      sender: {
+        name: 'Socialix',
+        email: 'noreply@socialix.com'
+      },
+      to: [
+        {
+          email: email
+        }
+      ],
       subject: 'Socialix - Email Verification OTP',
-      html: `
+      htmlContent: `
         <h2>Email Verification</h2>
         <p>Your OTP for email verification is:</p>
         <h3 style="color: #0095f6;">${otp}</h3>
         <p>This OTP will expire in 5 minutes.</p>
         <p>If you didn't request this, please ignore this email.</p>
       `
+    }, {
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'Content-Type': 'application/json'
+      }
     });
+
     return true;
   } catch (err) {
     console.error('Error sending OTP:', err.message);
